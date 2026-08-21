@@ -1,0 +1,35 @@
+.view {
+  display: grid;
+  gap: var(--space-4);
+  animation: fadeView 220ms var(--ease-out);
+}
+
+.centered {
+  min-height: calc(
+    100dvh - var(--header-height) - env(safe-area-inset-top) -
+      var(--nav-height) - env(safe-area-inset-bottom) - var(--space-4) - 16px
+  );
+  align-content: center;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@keyframes fadeView {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    animation: none;
+  }
+}

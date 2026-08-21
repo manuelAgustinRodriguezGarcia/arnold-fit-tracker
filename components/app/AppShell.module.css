@@ -1,0 +1,36 @@
+.shell {
+  width: min(100%, var(--max-width));
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--marble);
+  touch-action: pan-y;
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  z-index: 200;
+  padding: 8px 12px;
+  background: var(--bronze-dark);
+  color: var(--ivory);
+  border-radius: 8px;
+}
+
+.skip:focus {
+  left: 8px;
+}
+
+.main {
+  padding: var(--space-4);
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
+  touch-action: pan-y;
+}
+
+@media (min-width: 720px) {
+  .shell {
+    border-left: 1px solid var(--stone-light);
+    border-right: 1px solid var(--stone-light);
+    box-shadow: var(--shadow-card);
+  }
+}

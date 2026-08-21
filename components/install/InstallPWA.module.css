@@ -1,0 +1,41 @@
+.banner {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+  animation: rise 220ms var(--ease-out);
+}
+
+.banner p {
+  color: var(--stone-gray);
+  font-size: 0.92rem;
+}
+
+.banner button {
+  width: 100%;
+}
+
+.guideIntro {
+  color: var(--charcoal);
+  font-weight: 600;
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-3);
+  padding-left: 1.2rem;
+  color: var(--stone-gray);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

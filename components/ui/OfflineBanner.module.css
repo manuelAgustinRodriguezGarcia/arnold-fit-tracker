@@ -1,0 +1,12 @@
+.banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--stone-light);
+  color: var(--stone-gray);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

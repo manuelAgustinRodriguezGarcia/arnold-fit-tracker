@@ -1,0 +1,138 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.closing {
+  pointer-events: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--charcoal) 42%, transparent);
+  backdrop-filter: blur(10px);
+  border: 0;
+  width: 100%;
+  height: 100%;
+  animation: fadeIn var(--duration-fast) var(--ease-out);
+}
+
+.closing .backdrop {
+  animation: fadeOut var(--duration-fast) var(--ease-in) forwards;
+}
+
+.sheet {
+  position: relative;
+  width: min(100%, var(--max-width));
+  max-height: 88dvh;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+  border-bottom: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-modal);
+  animation: slideUp var(--duration) var(--ease-out);
+}
+
+.sheet::-webkit-scrollbar {
+  display: none;
+}
+
+.closing .sheet {
+  animation: slideDown var(--duration-fast) var(--ease-in) forwards;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.footer {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@media (min-width: 720px) {
+  .overlay {
+    align-items: center;
+    padding: var(--space-6);
+  }
+
+  .sheet {
+    border-radius: var(--radius-lg);
+    border-bottom: 1px solid var(--stone-taupe);
+    max-height: 82dvh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .sheet,
+  .closing .backdrop,
+  .closing .sheet {
+    animation: none;
+  }
+}

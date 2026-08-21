@@ -1,0 +1,22 @@
+.frame {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--stone-light);
+  color: var(--stone-gray);
+  border: 1px solid var(--stone-taupe);
+}
+
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.done {
+  background: var(--bronze-dark);
+  color: var(--ivory);
+  border-color: var(--bronze-dark);
+}

@@ -1,0 +1,181 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  width: min(100%, var(--max-width));
+  margin: 0 auto;
+  background: var(--marble);
+  animation: fadeView 220ms var(--ease-out);
+}
+
+.header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  min-height: calc(80px + env(safe-area-inset-top));
+  padding: calc(env(safe-area-inset-top) + 12px) var(--space-4) 12px;
+}
+
+.brand {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  height: 52px;
+  max-width: none;
+}
+
+.spacer {
+  width: 44px;
+}
+
+.hero {
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.kicker,
+.status {
+  color: var(--stone-gray);
+  font-weight: 600;
+}
+
+.timer {
+  font-family: var(--font-sans);
+  font-size: clamp(2.4rem, 10vw, 3.4rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  margin: 10px 0;
+  color: var(--charcoal);
+}
+
+.exercises {
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.exercises::-webkit-scrollbar {
+  display: none;
+}
+
+.exercise {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: rise 220ms var(--ease-out);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.exercise:active {
+  transform: scale(0.98);
+}
+
+.done {
+  background: color-mix(in srgb, var(--bronze-aged) 16%, var(--ivory));
+  border-color: color-mix(in srgb, var(--bronze-aged) 42%, var(--stone-taupe));
+}
+
+.exercise span {
+  display: block;
+  color: var(--stone-gray);
+  font-size: 0.85rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--stone-light);
+  background: var(--marble);
+}
+
+.fatigue {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.fatigueCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+  font-weight: 700;
+  text-align: left;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.fatigueCard:hover,
+.fatigueCard:active {
+  border-color: var(--bronze-aged);
+}
+
+.fatigueCard:active {
+  transform: scale(0.98);
+}
+
+@keyframes fadeView {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen,
+  .exercise {
+    animation: none;
+  }
+}

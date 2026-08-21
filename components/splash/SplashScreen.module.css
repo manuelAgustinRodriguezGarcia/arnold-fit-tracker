@@ -1,0 +1,73 @@
+.splash {
+  position: fixed;
+  top: calc(var(--header-height) + env(safe-area-inset-top));
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-splash);
+  display: grid;
+  place-items: center;
+  width: min(100%, var(--max-width));
+  margin-inline: auto;
+  background: color-mix(in srgb, var(--marble) 42%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 240ms var(--ease-out),
+    visibility 0s linear 240ms;
+}
+
+.withNav {
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
+}
+
+.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 240ms var(--ease-out),
+    visibility 0s linear 0s;
+}
+
+.mark {
+  position: relative;
+  z-index: 1;
+}
+
+.mark img {
+  width: auto;
+  height: 200px;
+  max-width: min(240px, 70vw);
+  max-height: 42dvh;
+  object-fit: contain;
+}
+
+.visible .mark {
+  animation: markIn 240ms var(--ease-out);
+}
+
+@keyframes markIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash,
+  .visible {
+    transition: none;
+  }
+
+  .visible .mark {
+    animation: none;
+  }
+}

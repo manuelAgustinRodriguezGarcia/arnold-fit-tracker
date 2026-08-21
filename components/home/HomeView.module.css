@@ -1,0 +1,109 @@
+.view {
+  display: grid;
+  gap: var(--space-4);
+  animation: fadeView 220ms var(--ease-out);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.activeCard {
+  background: var(--bronze-dark);
+  border-color: var(--bronze-dark);
+  color: var(--marble);
+  text-align: center;
+}
+
+.activeCard h2 {
+  font-size: 1.2rem;
+  margin-top: 4px;
+  color: var(--marble);
+}
+
+.activeCard button {
+  margin-top: var(--space-3);
+  background: var(--marble);
+  color: var(--bronze-dark);
+}
+
+.activeCard button:hover:not(:disabled) {
+  background: var(--ivory);
+}
+
+.kicker,
+.status {
+  color: color-mix(in srgb, var(--marble) 72%, var(--bronze-aged));
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.timer {
+  font-family: var(--font-sans);
+  font-size: clamp(2.8rem, 10vw, 3.6rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  margin: 12px 0 6px;
+  color: var(--marble);
+  text-align: center;
+}
+
+.week {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+}
+
+.weekHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weekHeader h2 {
+  font-size: 1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.stats article {
+  display: grid;
+  gap: 4px;
+}
+
+.stats strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--bronze-aged);
+}
+
+.stats span {
+  color: var(--stone-gray);
+  font-size: 0.8rem;
+}
+
+@keyframes fadeView {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    animation: none;
+  }
+}

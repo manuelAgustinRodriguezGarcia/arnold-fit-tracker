@@ -1,0 +1,17 @@
+.empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  color: var(--stone-gray);
+}
+
+.empty h2 {
+  color: var(--charcoal);
+  font-size: 1.15rem;
+}
+
+.empty p {
+  max-width: 28ch;
+}

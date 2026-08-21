@@ -1,0 +1,58 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--header-height) + env(safe-area-inset-top));
+  padding: calc(env(safe-area-inset-top) + 12px) var(--space-4) 12px;
+  background: var(--marble);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.brandTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  line-height: 0;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  height: 52px;
+  max-width: min(360px, 82vw);
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(0.72rem, 3.8vw, 0.92rem);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  color: var(--bronze-dark);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tagline strong {
+  font-weight: 700;
+  font-style: italic;
+}
+
+.aside {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: var(--space-4);
+}

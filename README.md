@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Arnold
 
-## Getting Started
+PWA mobile-first para organizar rutinas de gimnasio, entrenar y ver el progreso.
 
-First, run the development server:
+Los datos viven en el dispositivo. No hay backend ni cuenta.
+
+## Stack
+
+- Next.js (App Router) + React + JavaScript
+- CSS Modules y tokens en `app/globals.css`
+- `lucide-react`
+- `localStorage` (`arnold:v1`)
+- Web App Manifest + Service Worker
+
+## Cómo ejecutar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrí [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Datos iniciales
 
-## Learn More
+Las 3 rutinas precargadas están en `lib/seedData.js`.
 
-To learn more about Next.js, take a look at the following resources:
+Se cargan **solo** la primera vez, cuando todavía no existe `arnold:v1` en `localStorage`. Recargar o actualizar no las vuelve a pisar.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Imágenes de ejercicios
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Colocá archivos en `public/exercises/`.
 
-## Deploy on Vercel
+En cada ejercicio usá un path como `/exercises/bench-press.webp`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Si no hay imagen o falla la carga, se muestra un placeholder.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Logo e iconos PWA
+
+- Wordmark del header: `public/logo-arnold.svg`
+- Icono / splash / PWA: `public/logo-square-arnold.svg`
+
+## localStorage
+
+`lib/storage.js` es la única capa que lee y escribe `window.localStorage`.
+
+`lib/arnoldStore.js` guarda el estado en memoria y llama a esa capa.
+
+Los componentes hablan con `ArnoldContext` / `useArnold`, no con `localStorage` directo. Esa separación queda lista para reemplazar el storage por Supabase más adelante.
+
+## Service Worker
+
+`public/sw.js`, registrado desde `components/app/ServiceWorkerRegister.js`.
+
+- Navegación: network first, con fallback al shell cacheado
+- Assets estáticos e imágenes locales: cache first
+- Al activar una versión nueva, borra caches viejos `arnold-*`
+
+## Cómo probar offline
+
+1. Abrí Arnold online al menos una vez.
+2. En DevTools → Application → Service Workers, confirmá que está activo.
+3. Activá Offline o cortá la red.
+4. Recargá: Home, Rutinas, Progreso, crear/editar/entrenar deben seguir funcionando.
+
+## Cómo probar la instalación PWA
+
+- **Chrome / Edge:** el banner *Instalar Arnold* aparece cuando el navegador dispara `beforeinstallprompt`. Tocá el botón (no se abre el prompt solo).
+- **iPhone:** si no está en modo standalone, el mismo botón explica cómo usar *Agregar a pantalla de inicio* desde Safari.
+- Si ya está instalada, el banner no se muestra.
+
+Para probar en local, serví el build (`npm run build` + `npm start`) o usá un túnel HTTPS. Chrome puede limitar la instalación en `localhost` según la versión.
+
+## Preparado para Supabase
+
+No está integrado. Cuando toque migrar, el cambio debería quedar en:
+
+- `lib/storage.js` (reemplazar persistencia)
+- `context/ArnoldContext.js` (seguir exponiendo la misma API)
+
+Los componentes de UI no deberían enterarse del backend.
