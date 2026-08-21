@@ -1,11 +1,13 @@
 .toast {
   position: fixed;
   left: 50%;
-  top: calc(12px + env(safe-area-inset-top));
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-3));
   z-index: var(--z-toast);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  width: max-content;
+  max-width: calc(min(100vw, var(--max-width)) - var(--space-4) * 2);
   transform: translateX(-50%);
   min-height: 44px;
   padding: 0 16px;
@@ -14,13 +16,14 @@
   border: 1px solid var(--stone-taupe);
   color: var(--charcoal);
   font-weight: 600;
+  white-space: nowrap;
   animation: pop 220ms var(--ease-out);
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(-8px) scale(0.96);
+    transform: translateX(-50%) translateY(8px) scale(0.96);
   }
   to {
     opacity: 1;
