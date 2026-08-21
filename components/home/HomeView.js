@@ -56,7 +56,7 @@ export function HomeView({
           size="lg"
           icon={<Play size={18} />}
           onClick={onStartWorkout}
-          disabled={routines.length === 0 && !activeWorkout}
+          disabled={Boolean(activeWorkout) || routines.length === 0}
         >
           Comenzar entrenamiento
         </Button>

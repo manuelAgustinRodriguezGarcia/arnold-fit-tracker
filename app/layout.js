@@ -1,4 +1,5 @@
 import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { AppClient } from "@/components/app/AppClient";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -15,8 +16,16 @@ const sourceSans = Source_Sans_3({
   display: "swap",
 });
 
+const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "https://arnold-ten.vercel.app";
+
 export const metadata = {
-  title: "Arnold",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Arnold",
+    template: "%s · Arnold",
+  },
   description: "Organizá tus rutinas de gimnasio y registrá tus entrenamientos.",
   applicationName: "Arnold",
   appleWebApp: {
@@ -34,6 +43,18 @@ export const metadata = {
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
+  openGraph: {
+    title: "Arnold",
+    description: "Organizá tus rutinas de gimnasio y registrá tus entrenamientos.",
+    type: "website",
+    locale: "es_AR",
+    siteName: "Arnold",
+  },
+  twitter: {
+    card: "summary",
+    title: "Arnold",
+    description: "Organizá tus rutinas de gimnasio y registrá tus entrenamientos.",
+  },
 };
 
 export const viewport = {
@@ -46,7 +67,9 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es-AR" className={`${cormorant.variable} ${sourceSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <AppClient>{children}</AppClient>
+      </body>
     </html>
   );
 }

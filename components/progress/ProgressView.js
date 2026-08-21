@@ -6,7 +6,7 @@ import { SessionCard } from "@/components/progress/SessionCard";
 import { useArnold } from "@/hooks/useArnold";
 import styles from "./ProgressView.module.css";
 
-export function ProgressView({ onOpenSession }) {
+export function ProgressView({ onOpenSession, onDeleteSession }) {
   const { sessions } = useArnold();
   const ordered = [...sessions].sort(
     (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
@@ -29,6 +29,7 @@ export function ProgressView({ onOpenSession }) {
               key={session.id}
               session={session}
               onOpen={() => onOpenSession(session)}
+              onDelete={() => onDeleteSession(session)}
             />
           ))}
         </div>

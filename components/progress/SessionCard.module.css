@@ -1,11 +1,23 @@
 .card {
   width: 100%;
   text-align: left;
-  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.card:active {
-  transform: scale(0.98);
+.open {
+  display: grid;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.open:focus-visible {
+  outline: 2px solid var(--bronze-dark);
+  outline-offset: 4px;
 }
 
 .card h3 {
@@ -19,9 +31,23 @@
   gap: var(--space-3);
 }
 
+.header .open {
+  flex: 1;
+  min-width: 0;
+}
+
+.aside {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
 .fatigue {
   display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  min-height: var(--touch);
   color: var(--bronze-dark);
 }
 

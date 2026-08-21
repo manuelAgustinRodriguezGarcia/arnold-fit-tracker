@@ -129,6 +129,17 @@ export function ArnoldProvider({ children }) {
     [showNotice],
   );
 
+  const deleteSession = useCallback(
+    (sessionId) => {
+      updateArnoldStore((current) => ({
+        ...current,
+        sessions: current.sessions.filter((session) => session.id !== sessionId),
+      }));
+      showNotice("Entrenamiento eliminado");
+    },
+    [showNotice],
+  );
+
   const startWorkout = useCallback((routineId) => {
     let result = { ok: false, code: "unknown" };
 
@@ -232,6 +243,7 @@ export function ArnoldProvider({ children }) {
       createRoutine,
       updateRoutine,
       deleteRoutine,
+      deleteSession,
       startWorkout,
       pauseActiveWorkout,
       resumeActiveWorkout,
@@ -250,6 +262,7 @@ export function ArnoldProvider({ children }) {
       createRoutine,
       updateRoutine,
       deleteRoutine,
+      deleteSession,
       startWorkout,
       pauseActiveWorkout,
       resumeActiveWorkout,

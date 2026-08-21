@@ -1,6 +1,8 @@
-const CACHE_NAME = "arnold-cache-v5";
+const CACHE_NAME = "arnold-cache-v6";
 const SHELL_URLS = [
   "/",
+  "/rutinas",
+  "/progreso",
   "/logo-arnold.svg",
   "/logo-square-arnold.svg",
   "/logo-square-arnold-192.png",

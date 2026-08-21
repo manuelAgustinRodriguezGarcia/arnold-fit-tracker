@@ -1,4 +1,5 @@
 import { ExerciseImage } from "@/components/ui/ExerciseImage";
+import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import {
   formatDateTime,
@@ -8,7 +9,7 @@ import {
 import { getFatigueLabel } from "@/lib/workout";
 import styles from "./SessionDetail.module.css";
 
-export function SessionDetail({ session, onClose }) {
+export function SessionDetail({ session, onClose, onDelete }) {
   if (!session) {
     return null;
   }
@@ -20,6 +21,11 @@ export function SessionDetail({ session, onClose }) {
       open={Boolean(session)}
       title={getTrainingTitle(session.startedAt)}
       onClose={onClose}
+      footer={
+        <Button variant="danger" size="lg" onClick={() => onDelete(session)}>
+          Eliminar entrenamiento
+        </Button>
+      }
     >
       <dl className={styles.meta}>
         <div>

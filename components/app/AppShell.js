@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { Toast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { BottomNav, NAV_VIEWS } from "@/components/navigation/BottomNav";
+import { BottomNav } from "@/components/navigation/BottomNav";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { HomeView } from "@/components/home/HomeView";
 import { RoutinesView } from "@/components/routines/RoutinesView";
@@ -15,17 +16,21 @@ import { SessionDetail } from "@/components/progress/SessionDetail";
 import { WorkoutScreen } from "@/components/workout/WorkoutScreen";
 import { useArnold } from "@/hooks/useArnold";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { NAV_VIEWS, pathToView, viewToPath } from "@/lib/navigation";
 import styles from "./AppShell.module.css";
 
 export function AppShell() {
-  const { isReady, activeWorkout, deleteRoutine, startWorkout, notice, clearNotice } =
+  const pathname = usePathname() || "/";
+  const router = useRouter();
+  const view = pathToView(pathname);
+  const { isReady, activeWorkout, deleteRoutine, deleteSession, startWorkout, notice, clearNotice } =
     useArnold();
-  const [view, setView] = useState("home");
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [formRoutine, setFormRoutine] = useState(undefined);
   const [formOpen, setFormOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
   const [activeConflict, setActiveConflict] = useState(false);
   const [sessionDetail, setSessionDetail] = useState(null);
   const shellRef = useRef(null);
@@ -35,11 +40,18 @@ export function AppShell() {
     pickerOpen ||
     Boolean(sessionDetail) ||
     Boolean(deleteTarget) ||
+    Boolean(sessionToDelete) ||
     activeConflict;
 
-  const navigateTo = useCallback((nextView) => {
-    setView(nextView);
-  }, []);
+  const navigateTo = useCallback(
+    (nextView) => {
+      const nextPath = viewToPath(nextView);
+      if (nextPath !== pathname) {
+        router.push(nextPath);
+      }
+    },
+    [pathname, router],
+  );
 
   useSwipeNavigation({
     targetRef: shellRef,
@@ -83,7 +95,7 @@ export function AppShell() {
 
   function handleWorkoutFinished() {
     setWorkoutOpen(false);
-    setView("home");
+    router.push("/");
   }
 
   return (
@@ -112,14 +124,17 @@ export function AppShell() {
               />
             ) : null}
             {view === "progress" ? (
-              <ProgressView onOpenSession={setSessionDetail} />
+              <ProgressView
+                onOpenSession={setSessionDetail}
+                onDeleteSession={setSessionToDelete}
+              />
             ) : null}
           </main>
         ) : (
           <main id="contenido" className={styles.main} />
         )}
         {isReady && !workoutOpen ? (
-          <BottomNav view={view} onChange={navigateTo} />
+          <BottomNav />
         ) : null}
       </div>
 
@@ -146,6 +161,10 @@ export function AppShell() {
       <SessionDetail
         session={sessionDetail}
         onClose={() => setSessionDetail(null)}
+        onDelete={(session) => {
+          setSessionDetail(null);
+          setSessionToDelete(session);
+        }}
       />
       <ConfirmDialog
         open={Boolean(deleteTarget)}
@@ -160,6 +179,21 @@ export function AppShell() {
           setDeleteTarget(null);
         }}
         onClose={() => setDeleteTarget(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(sessionToDelete)}
+        title="Eliminar entrenamiento"
+        message="¿Eliminar este entrenamiento? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={() => {
+          if (sessionToDelete) {
+            deleteSession(sessionToDelete.id);
+          }
+          setSessionToDelete(null);
+          setSessionDetail(null);
+        }}
+        onClose={() => setSessionToDelete(null)}
       />
       <ConfirmDialog
         open={activeConflict}
