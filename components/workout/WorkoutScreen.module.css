@@ -142,13 +142,15 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.fatigueCard:hover,
 .fatigueCard:active {
   border-color: var(--bronze-aged);
+  transform: scale(0.98);
 }
 
-.fatigueCard:active {
-  transform: scale(0.98);
+@media (hover: hover) and (pointer: fine) {
+  .fatigueCard:hover {
+    border-color: var(--bronze-aged);
+  }
 }
 
 @keyframes fadeView {

@@ -41,18 +41,20 @@
   color: var(--ivory);
 }
 
-.primary:hover:not(:disabled) {
-  background: var(--bronze-aged);
-}
-
 .secondary {
   background: transparent;
   color: var(--charcoal);
   border: 1px solid var(--stone-taupe);
 }
 
-.secondary:hover:not(:disabled) {
-  background: var(--stone-light);
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) {
+    background: var(--bronze-aged);
+  }
+
+  .secondary:hover:not(:disabled) {
+    background: var(--stone-light);
+  }
 }
 
 .ghost {

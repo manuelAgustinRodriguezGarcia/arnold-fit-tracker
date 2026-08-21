@@ -29,8 +29,10 @@
   color: var(--bronze-dark);
 }
 
-.activeCard button:hover:not(:disabled) {
-  background: var(--ivory);
+@media (hover: hover) and (pointer: fine) {
+  .activeCard button:hover:not(:disabled) {
+    background: var(--ivory);
+  }
 }
 
 .kicker,

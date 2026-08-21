@@ -40,6 +40,7 @@
 html {
   height: 100%;
   color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -83,10 +84,20 @@ select {
   color: inherit;
 }
 
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 button {
   cursor: pointer;
   background: none;
   border: none;
+}
+
+button::-moz-focus-inner {
+  border: 0;
 }
 
 img {
@@ -103,9 +114,15 @@ a {
   color: var(--stone-gray);
 }
 
-:focus-visible {
-  outline: 2px solid var(--bronze-dark);
-  outline-offset: 2px;
+:focus {
+  outline: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :focus-visible {
+    outline: 2px solid var(--bronze-dark);
+    outline-offset: 2px;
+  }
 }
 
 .sr-only {
