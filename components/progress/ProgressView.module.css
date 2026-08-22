@@ -17,6 +17,69 @@
   gap: var(--space-3);
 }
 
+.period {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--stone-light);
+  border: 1px solid var(--stone-taupe);
+}
+
+.tab {
+  min-height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--stone-gray);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--ivory);
+  color: var(--charcoal);
+  box-shadow: var(--shadow-card);
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+
+.nav p {
+  text-align: center;
+  font-weight: 600;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+}
+
+.metrics article {
+  display: grid;
+  gap: 4px;
+}
+
+.metrics strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--bronze-aged);
+}
+
+.metrics span {
+  color: var(--stone-gray);
+  font-size: 0.8rem;
+}
+
 @keyframes fadeView {
   from {
     opacity: 0;

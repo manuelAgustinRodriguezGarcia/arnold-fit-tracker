@@ -1,0 +1,56 @@
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  border: 1px solid var(--stone-taupe);
+}
+
+.current {
+  border-color: var(--bronze-dark);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bronze-dark) 35%, transparent);
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.copy strong {
+  display: block;
+}
+
+.copy span {
+  display: block;
+  color: var(--stone-gray);
+  font-size: 0.85rem;
+}
+
+.copy .badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bronze-dark);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.setsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setsHeader p {
+  font-weight: 700;
+}

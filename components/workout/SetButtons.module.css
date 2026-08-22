@@ -1,0 +1,28 @@
+.sets {
+  display: flex;
+  gap: 8px;
+}
+
+.set {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--stone-taupe);
+  background: var(--ivory);
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+.set[aria-pressed="true"] {
+  background: var(--completed-set);
+  border-color: var(--completed-set);
+  color: var(--ivory);
+}
+
+.set:active {
+  transform: scale(0.96);
+}

@@ -12,11 +12,15 @@ import {
 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { ExerciseImage } from "@/components/ui/ExerciseImage";
 import { Logo } from "@/components/ui/Logo";
 import { Modal } from "@/components/ui/Modal";
+import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
+import { ExerciseWorkoutEditor } from "@/components/workout/ExerciseWorkoutEditor";
+import { RestTimerPill } from "@/components/workout/RestTimerPill";
+import { WorkoutExercise } from "@/components/workout/WorkoutExercise";
 import { useArnold } from "@/hooks/useArnold";
 import { useWorkoutTimer } from "@/hooks/useWorkoutTimer";
+import { EXERCISE_TYPE } from "@/lib/exercises";
 import { FATIGUE, WORKOUT_STATUS } from "@/lib/workout";
 import styles from "./WorkoutScreen.module.css";
 
@@ -43,20 +47,32 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     activeWorkout,
     pauseActiveWorkout,
     resumeActiveWorkout,
-    toggleExerciseDone,
+    toggleSetDone,
+    beginTimedSet,
+    markCurrentExercise,
+    swapWorkoutExercise,
     finishWorkout,
   } = useArnold();
   const { display } = useWorkoutTimer(activeWorkout);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [fatigueOpen, setFatigueOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [replacing, setReplacing] = useState(null);
 
   if (!activeWorkout) {
     return null;
   }
 
   const paused = activeWorkout.status === WORKOUT_STATUS.PAUSED;
-  const exercises = activeWorkout.routineSnapshot?.exercises || [];
-  const completedIds = activeWorkout.completedExerciseIds || [];
+  const exercises = activeWorkout.exercises || [];
+
+  function onToggleSet(exercise, set) {
+    if (exercise.type === EXERCISE_TYPE.TIMED && !set.completed) {
+      beginTimedSet(exercise.workoutExerciseId, set.id);
+      return;
+    }
+    toggleSetDone(exercise.workoutExerciseId, set.id);
+  }
 
   function onConfirmFinish() {
     setConfirmOpen(false);
@@ -89,32 +105,25 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         <p className={styles.status}>{paused ? "Pausado" : "En curso"}</p>
       </div>
 
-      <ul className={styles.exercises}>
-        {exercises.map((exercise) => {
-          const exerciseId = exercise.id || exercise.name;
-          const done = completedIds.includes(exerciseId);
+      {activeWorkout.restTimer ? (
+        <RestTimerPill restTimer={activeWorkout.restTimer} />
+      ) : null}
 
-          return (
-            <li key={exerciseId}>
-              <button
-                type="button"
-                className={`${styles.exercise} ${done ? styles.done : ""}`}
-                aria-pressed={done}
-                onClick={() => toggleExerciseDone(exerciseId)}
-              >
-                <ExerciseImage
-                  imagePath={exercise.imagePath}
-                  name={exercise.name}
-                  done={done}
-                />
-                <div>
-                  <strong>{exercise.name}</strong>
-                  {exercise.details ? <span>{exercise.details}</span> : null}
-                </div>
-              </button>
-            </li>
-          );
-        })}
+      <ul className={styles.exercises}>
+        {exercises.map((exercise) => (
+          <li key={exercise.workoutExerciseId}>
+            <WorkoutExercise
+              exercise={exercise}
+              current={activeWorkout.currentExerciseId === exercise.workoutExerciseId}
+              timedTimer={activeWorkout.timedTimer}
+              onToggleSet={onToggleSet}
+              onEdit={() => {
+                markCurrentExercise(exercise.workoutExerciseId);
+                setEditing(exercise.workoutExerciseId);
+              }}
+            />
+          </li>
+        ))}
       </ul>
 
       <div className={styles.controls}>
@@ -171,6 +180,29 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
           ))}
         </div>
       </Modal>
+
+      {editing ? (
+        <ExerciseWorkoutEditor
+          exercise={exercises.find((item) => item.workoutExerciseId === editing)}
+          onClose={() => setEditing(null)}
+          onReplace={() => {
+            setReplacing(editing);
+            setEditing(null);
+          }}
+        />
+      ) : null}
+
+      <ExerciseSelector
+        open={Boolean(replacing)}
+        title="Cambiar ejercicio"
+        onClose={() => setReplacing(null)}
+        onSelect={(exercise) => {
+          if (replacing) {
+            swapWorkoutExercise(replacing, exercise.id);
+          }
+          setReplacing(null);
+        }}
+      />
     </section>
   );
 }

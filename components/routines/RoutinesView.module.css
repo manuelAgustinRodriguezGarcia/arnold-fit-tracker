@@ -10,14 +10,79 @@
   gap: var(--space-3);
 }
 
-.fab {
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--stone-light);
+  border: 1px solid var(--stone-taupe);
+}
+
+.tab {
+  min-height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--stone-gray);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--ivory);
+  color: var(--charcoal);
+  box-shadow: var(--shadow-card);
+}
+
+.fabWrap {
   position: fixed;
-  z-index: calc(var(--z-nav) + 1);
+  z-index: calc(var(--z-nav) + 2);
   right: max(
     var(--space-4),
     calc((100vw - min(100vw, var(--max-width))) / 2 + var(--space-4))
   );
   bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4));
+  display: grid;
+  justify-items: end;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-2);
+}
+
+.actionsClosing {
+  pointer-events: none;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--ivory);
+  border: 1px solid var(--bronze-dark);
+  box-shadow: var(--shadow-card);
+  font-weight: 600;
+  color: var(--charcoal);
+  animation: riseMenu var(--duration) var(--ease-out) backwards;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.action:active {
+  transform: scale(0.96);
+  background: var(--stone-light);
+}
+
+.actionClosing {
+  animation: dropMenu var(--duration-fast) var(--ease-in) forwards;
+}
+
+.fab {
   display: grid;
   place-items: center;
   width: 56px;
@@ -29,8 +94,38 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
+.fabOpen {
+  transform: rotate(45deg);
+}
+
 .fab:active {
   transform: scale(0.94);
+}
+
+.fabOpen:active {
+  transform: rotate(45deg) scale(0.94);
+}
+
+@keyframes riseMenu {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes dropMenu {
+  from {
+    opacity: 1;
+    translate: 0 0;
+  }
+  to {
+    opacity: 0;
+    translate: 0 12px;
+  }
 }
 
 @keyframes fadeView {
@@ -44,8 +139,16 @@
   }
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    background: var(--stone-light);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .view {
+  .view,
+  .action,
+  .actionClosing {
     animation: none;
   }
 }

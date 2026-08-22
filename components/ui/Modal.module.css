@@ -59,9 +59,45 @@
   margin-bottom: var(--space-4);
 }
 
+.headerBronze {
+  margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-4);
+  padding: 12px var(--space-4);
+  background: var(--bronze-dark);
+  color: #fff;
+}
+
+.headerBronze .title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em;
+  color: #fff;
+}
+
+.headerBronze button {
+  color: #fff;
+}
+
+.headerBronze button:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .title {
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.titleSep {
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+.titleMeta {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .body {

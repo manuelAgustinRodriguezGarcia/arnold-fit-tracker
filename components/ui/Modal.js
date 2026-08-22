@@ -14,6 +14,8 @@ function prefersReducedMotion() {
 export function Modal({
   open,
   title,
+  titleMeta,
+  headerVariant = "default",
   onClose,
   children,
   footer,
@@ -133,10 +135,20 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={title ? "arnold-modal-title" : undefined}
       >
-        <div className={styles.header}>
+        <div
+          className={`${styles.header} ${headerVariant === "bronze" ? styles.headerBronze : ""}`}
+        >
           {title ? (
             <h2 id="arnold-modal-title" className={styles.title}>
               {title}
+              {titleMeta ? (
+                <>
+                  <span className={styles.titleSep} aria-hidden="true">
+                    |
+                  </span>
+                  <span className={styles.titleMeta}>{titleMeta}</span>
+                </>
+              ) : null}
             </h2>
           ) : (
             <span />

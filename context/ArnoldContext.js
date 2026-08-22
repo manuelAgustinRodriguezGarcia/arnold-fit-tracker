@@ -8,12 +8,22 @@ import {
   updateArnoldStore,
 } from "@/lib/arnoldStore";
 import { createId } from "@/lib/ids";
+import { createExerciseRecord, findExerciseById } from "@/lib/exercises";
 import {
+  adjustRestTimer,
+  applyResizeSets,
+  applySetFields,
+  applySetToggle,
+  applyTimedSetComplete,
+  clearExpiredRest,
   createActiveWorkout,
   createSession,
   pauseWorkout as pauseWorkoutState,
+  replaceWorkoutExercise,
   resumeWorkout as resumeWorkoutState,
-  toggleCompletedExercise,
+  setCurrentExercise,
+  skipRest,
+  startTimedSet,
 } from "@/lib/workout";
 
 export const ArnoldContext = createContext(null);
@@ -30,16 +40,13 @@ function getServerReady() {
   return false;
 }
 
-function normalizeExercises(exercises) {
-  return exercises
-    .map((exercise, index) => ({
-      id: exercise.id || createId(),
-      name: (exercise.name || "").trim(),
-      details: (exercise.details || "").trim(),
-      imagePath: (exercise.imagePath || "").trim() || null,
+function normalizeRoutineEntries(exercises) {
+  return (exercises || [])
+    .map((item, index) => ({
+      exerciseId: item.exerciseId || item.id,
       order: index,
     }))
-    .filter((exercise) => exercise.name.length > 0);
+    .filter((item) => Boolean(item.exerciseId));
 }
 
 export function ArnoldProvider({ children }) {
@@ -63,6 +70,74 @@ export function ArnoldProvider({ children }) {
     setNotice(null);
   }, []);
 
+  const createExercise = useCallback(
+    (payload) => {
+      const name = (payload?.name || "").trim();
+      if (!name) {
+        return { ok: false, error: "El nombre es obligatorio." };
+      }
+
+      const exercise = createExerciseRecord({
+        ...payload,
+        name,
+      });
+
+      updateArnoldStore((current) => ({
+        ...current,
+        exercises: [...current.exercises, exercise],
+      }));
+
+      showNotice("Ejercicio creado");
+      return { ok: true, exercise };
+    },
+    [showNotice],
+  );
+
+  const updateExercise = useCallback(
+    (exerciseId, payload) => {
+      const name = (payload?.name || "").trim();
+      if (!name) {
+        return { ok: false, error: "El nombre es obligatorio." };
+      }
+
+      updateArnoldStore((current) => ({
+        ...current,
+        exercises: current.exercises.map((exercise) =>
+          exercise.id === exerciseId
+            ? createExerciseRecord({
+                ...exercise,
+                ...payload,
+                id: exercise.id,
+                name,
+                createdAt: exercise.createdAt,
+              })
+            : exercise,
+        ),
+      }));
+
+      showNotice("Ejercicio actualizado");
+      return { ok: true };
+    },
+    [showNotice],
+  );
+
+  const deleteExercise = useCallback(
+    (exerciseId) => {
+      updateArnoldStore((current) => ({
+        ...current,
+        exercises: current.exercises.filter((exercise) => exercise.id !== exerciseId),
+        routines: current.routines.map((routine) => ({
+          ...routine,
+          exercises: (routine.exercises || []).filter(
+            (item) => item.exerciseId !== exerciseId,
+          ).map((item, index) => ({ ...item, order: index })),
+        })),
+      }));
+      showNotice("Ejercicio eliminado");
+    },
+    [showNotice],
+  );
+
   const createRoutine = useCallback(
     ({ name, description, exercises }) => {
       const trimmedName = (name || "").trim();
@@ -70,7 +145,6 @@ export function ArnoldProvider({ children }) {
         return { ok: false, error: "El nombre es obligatorio." };
       }
 
-      const normalized = normalizeExercises(exercises || []);
       updateArnoldStore((current) => ({
         ...current,
         routines: [
@@ -79,7 +153,7 @@ export function ArnoldProvider({ children }) {
             id: createId(),
             name: trimmedName,
             description: (description || "").trim(),
-            exercises: normalized,
+            exercises: normalizeRoutineEntries(exercises),
           },
         ],
       }));
@@ -97,7 +171,6 @@ export function ArnoldProvider({ children }) {
         return { ok: false, error: "El nombre es obligatorio." };
       }
 
-      const normalized = normalizeExercises(exercises || []);
       updateArnoldStore((current) => ({
         ...current,
         routines: current.routines.map((routine) =>
@@ -106,7 +179,7 @@ export function ArnoldProvider({ children }) {
                 ...routine,
                 name: trimmedName,
                 description: (description || "").trim(),
-                exercises: normalized,
+                exercises: normalizeRoutineEntries(exercises),
               }
             : routine,
         ),
@@ -155,7 +228,7 @@ export function ArnoldProvider({ children }) {
         return current;
       }
 
-      const workout = createActiveWorkout(routine);
+      const workout = createActiveWorkout(routine, current.exercises);
       result = { ok: true, workout };
       return { ...current, activeWorkout: workout };
     });
@@ -187,21 +260,165 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
-  const toggleExerciseDone = useCallback((exerciseId) => {
+  const markCurrentExercise = useCallback((workoutExerciseId) => {
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
         return current;
       }
-
       return {
         ...current,
-        activeWorkout: toggleCompletedExercise(
+        activeWorkout: setCurrentExercise(current.activeWorkout, workoutExerciseId),
+      };
+    });
+  }, []);
+
+  const toggleSetDone = useCallback((workoutExerciseId, setId) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: applySetToggle(
           current.activeWorkout,
-          exerciseId,
+          workoutExerciseId,
+          setId,
+          new Date(),
         ),
       };
     });
   }, []);
+
+  const updateWorkoutSet = useCallback((workoutExerciseId, setId, fields) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: applySetFields(
+          current.activeWorkout,
+          workoutExerciseId,
+          setId,
+          fields,
+        ),
+      };
+    });
+  }, []);
+
+  const changeWorkoutSetCount = useCallback((workoutExerciseId, nextCount) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: applyResizeSets(
+          current.activeWorkout,
+          workoutExerciseId,
+          nextCount,
+        ),
+      };
+    });
+  }, []);
+
+  const adjustActiveRest = useCallback((deltaSeconds) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: adjustRestTimer(current.activeWorkout, deltaSeconds, new Date()),
+      };
+    });
+  }, []);
+
+  const skipActiveRest = useCallback(() => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: skipRest(current.activeWorkout),
+      };
+    });
+  }, []);
+
+  const expireActiveRest = useCallback(() => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      const next = clearExpiredRest(current.activeWorkout);
+      return next === current.activeWorkout ? current : { ...current, activeWorkout: next };
+    });
+  }, []);
+
+  const beginTimedSet = useCallback((workoutExerciseId, setId) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: startTimedSet(
+          current.activeWorkout,
+          workoutExerciseId,
+          setId,
+          new Date(),
+        ),
+      };
+    });
+  }, []);
+
+  const finishTimedSet = useCallback((workoutExerciseId, setId) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: applyTimedSetComplete(
+          current.activeWorkout,
+          workoutExerciseId,
+          setId,
+          new Date(),
+        ),
+      };
+    });
+  }, []);
+
+  const swapWorkoutExercise = useCallback(
+    (workoutExerciseId, exerciseId) => {
+      let mode = "none";
+      updateArnoldStore((current) => {
+        if (!current.activeWorkout) {
+          return current;
+        }
+        const libraryExercise = findExerciseById(current.exercises, exerciseId);
+        if (!libraryExercise) {
+          return current;
+        }
+        const result = replaceWorkoutExercise(
+          current.activeWorkout,
+          workoutExerciseId,
+          libraryExercise,
+        );
+        mode = result.mode;
+        return {
+          ...current,
+          activeWorkout: result.workout,
+        };
+      });
+      if (mode === "insert") {
+        showNotice("Ejercicio agregado como reemplazo");
+      }
+      return mode;
+    },
+    [showNotice],
+  );
 
   const finishWorkout = useCallback(
     (fatigue) => {
@@ -233,13 +450,17 @@ export function ArnoldProvider({ children }) {
   const value = useMemo(
     () => ({
       isReady,
-      routines: state.routines,
-      sessions: state.sessions,
+      exercises: state.exercises || [],
+      routines: state.routines || [],
+      sessions: state.sessions || [],
       activeWorkout: state.activeWorkout,
       settings: state.settings,
       notice,
       showNotice,
       clearNotice,
+      createExercise,
+      updateExercise,
+      deleteExercise,
       createRoutine,
       updateRoutine,
       deleteRoutine,
@@ -247,11 +468,21 @@ export function ArnoldProvider({ children }) {
       startWorkout,
       pauseActiveWorkout,
       resumeActiveWorkout,
-      toggleExerciseDone,
+      markCurrentExercise,
+      toggleSetDone,
+      updateWorkoutSet,
+      changeWorkoutSetCount,
+      adjustActiveRest,
+      skipActiveRest,
+      expireActiveRest,
+      beginTimedSet,
+      finishTimedSet,
+      swapWorkoutExercise,
       finishWorkout,
     }),
     [
       isReady,
+      state.exercises,
       state.routines,
       state.sessions,
       state.activeWorkout,
@@ -259,6 +490,9 @@ export function ArnoldProvider({ children }) {
       notice,
       showNotice,
       clearNotice,
+      createExercise,
+      updateExercise,
+      deleteExercise,
       createRoutine,
       updateRoutine,
       deleteRoutine,
@@ -266,7 +500,16 @@ export function ArnoldProvider({ children }) {
       startWorkout,
       pauseActiveWorkout,
       resumeActiveWorkout,
-      toggleExerciseDone,
+      markCurrentExercise,
+      toggleSetDone,
+      updateWorkoutSet,
+      changeWorkoutSetCount,
+      adjustActiveRest,
+      skipActiveRest,
+      expireActiveRest,
+      beginTimedSet,
+      finishTimedSet,
+      swapWorkoutExercise,
       finishWorkout,
     ],
   );

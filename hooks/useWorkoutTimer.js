@@ -6,9 +6,12 @@ import { getElapsedMilliseconds, WORKOUT_STATUS } from "@/lib/workout";
 
 export function useWorkoutTimer(workout) {
   const [now, setNow] = useState(() => Date.now());
+  const status = workout?.status;
+  const workoutId = workout?.id;
+  const pausedAt = workout?.pausedAt;
 
   useEffect(() => {
-    if (!workout) {
+    if (!workoutId || status !== WORKOUT_STATUS.RUNNING) {
       return undefined;
     }
 
@@ -22,24 +25,17 @@ export function useWorkoutTimer(workout) {
       }
     }
 
+    refresh();
+    const intervalId = window.setInterval(refresh, 250);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("focus", refresh);
-
-    if (workout.status !== WORKOUT_STATUS.RUNNING) {
-      return () => {
-        document.removeEventListener("visibilitychange", onVisibility);
-        window.removeEventListener("focus", refresh);
-      };
-    }
-
-    const intervalId = window.setInterval(refresh, 250);
 
     return () => {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("focus", refresh);
     };
-  }, [workout, workout?.id, workout?.status, workout?.pausedAt]);
+  }, [workoutId, status, pausedAt]);
 
   const elapsedMs = workout ? getElapsedMilliseconds(workout, now) : 0;
 

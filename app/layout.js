@@ -1,14 +1,6 @@
-import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import { AppClient } from "@/components/app/AppClient";
 import "./globals.css";
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
 
 const sourceSans = Source_Sans_3({
   variable: "--font-source-sans",
@@ -66,7 +58,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es-AR" className={`${cormorant.variable} ${sourceSans.variable}`}>
+    <html lang="es-AR" className={sourceSans.variable}>
       <body>
         <AppClient>{children}</AppClient>
       </body>

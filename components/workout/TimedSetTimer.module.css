@@ -1,0 +1,24 @@
+.timer {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bronze-dark) 10%, var(--ivory));
+  border: 1px solid color-mix(in srgb, var(--bronze-dark) 28%, var(--stone-taupe));
+}
+
+.timer span {
+  color: var(--stone-gray);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.timer strong {
+  font-family: var(--font-sans);
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}

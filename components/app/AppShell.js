@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/navigation/BottomNav";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { HomeView } from "@/components/home/HomeView";
 import { RoutinesView } from "@/components/routines/RoutinesView";
+import { ExerciseEditor } from "@/components/routines/ExerciseEditor";
 import { RoutineForm } from "@/components/routines/RoutineForm";
 import { StartWorkoutPicker } from "@/components/routines/StartWorkoutPicker";
 import { ProgressView } from "@/components/progress/ProgressView";
@@ -23,13 +24,24 @@ export function AppShell() {
   const pathname = usePathname() || "/";
   const router = useRouter();
   const view = pathToView(pathname);
-  const { isReady, activeWorkout, deleteRoutine, deleteSession, startWorkout, notice, clearNotice } =
-    useArnold();
+  const {
+    isReady,
+    activeWorkout,
+    deleteRoutine,
+    deleteSession,
+    deleteExercise,
+    startWorkout,
+    notice,
+    clearNotice,
+  } = useArnold();
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [formRoutine, setFormRoutine] = useState(undefined);
   const [formOpen, setFormOpen] = useState(false);
+  const [exerciseForm, setExerciseForm] = useState(undefined);
+  const [exerciseFormOpen, setExerciseFormOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [activeConflict, setActiveConflict] = useState(false);
   const [sessionDetail, setSessionDetail] = useState(null);
@@ -37,9 +49,11 @@ export function AppShell() {
   const overlayOpen =
     workoutOpen ||
     formOpen ||
+    exerciseFormOpen ||
     pickerOpen ||
     Boolean(sessionDetail) ||
     Boolean(deleteTarget) ||
+    Boolean(exerciseToDelete) ||
     Boolean(sessionToDelete) ||
     activeConflict;
 
@@ -70,6 +84,16 @@ export function AppShell() {
   function openEditForm(routine) {
     setFormRoutine(routine);
     setFormOpen(true);
+  }
+
+  function openCreateExercise() {
+    setExerciseForm(null);
+    setExerciseFormOpen(true);
+  }
+
+  function openEditExercise(exercise) {
+    setExerciseForm(exercise);
+    setExerciseFormOpen(true);
   }
 
   function handleStart(routineId) {
@@ -121,12 +145,15 @@ export function AppShell() {
                 onEdit={openEditForm}
                 onDelete={setDeleteTarget}
                 onStart={handleStart}
+                onCreateExercise={openCreateExercise}
+                onEditExercise={openEditExercise}
+                onDeleteExercise={setExerciseToDelete}
               />
             ) : null}
             {view === "progress" ? (
               <ProgressView
                 onOpenSession={setSessionDetail}
-                onDeleteSession={setSessionToDelete}
+                onDeleteSession={(session) => deleteSession(session.id)}
               />
             ) : null}
           </main>
@@ -150,6 +177,13 @@ export function AppShell() {
           key={formRoutine?.id || "create"}
           routine={formRoutine}
           onClose={() => setFormOpen(false)}
+        />
+      ) : null}
+      {exerciseFormOpen ? (
+        <ExerciseEditor
+          key={exerciseForm?.id || "create-exercise"}
+          exercise={exerciseForm}
+          onClose={() => setExerciseFormOpen(false)}
         />
       ) : null}
       <StartWorkoutPicker
@@ -179,6 +213,20 @@ export function AppShell() {
           setDeleteTarget(null);
         }}
         onClose={() => setDeleteTarget(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(exerciseToDelete)}
+        title="Eliminar ejercicio"
+        message="¿Eliminar este ejercicio de la biblioteca? Las rutinas lo van a perder, el historial se conserva."
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={() => {
+          if (exerciseToDelete) {
+            deleteExercise(exerciseToDelete.id);
+          }
+          setExerciseToDelete(null);
+        }}
+        onClose={() => setExerciseToDelete(null)}
       />
       <ConfirmDialog
         open={Boolean(sessionToDelete)}

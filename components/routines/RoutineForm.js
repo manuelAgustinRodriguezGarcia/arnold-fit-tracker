@@ -8,52 +8,36 @@ import { Flip } from "gsap/Flip";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
 import { useArnold } from "@/hooks/useArnold";
 import { createId } from "@/lib/ids";
+import { findExerciseById, formatExerciseSummary, resolveRoutineExercises } from "@/lib/exercises";
 import styles from "./RoutineForm.module.css";
 
 gsap.registerPlugin(useGSAP, Flip);
 
-function emptyExercise() {
-  return {
-    id: createId(),
-    name: "",
-    details: "",
-    imagePath: "",
-  };
-}
-
-function exercisesFromRoutine(routine) {
-  if (routine?.exercises?.length) {
-    return routine.exercises.map((exercise) => ({
-      id: exercise.id,
-      name: exercise.name || "",
-      details: exercise.details || "",
-      imagePath: exercise.imagePath || "",
-    }));
+function entriesFromRoutine(routine, library) {
+  if (!routine?.exercises?.length) {
+    return [];
   }
-  return [emptyExercise()];
+  return resolveRoutineExercises(routine, library).map((exercise) => ({
+    id: createId(),
+    exerciseId: exercise.exerciseId || exercise.id,
+  }));
 }
 
 export function RoutineForm({ routine, onClose }) {
-  const { createRoutine, updateRoutine } = useArnold();
+  const { createRoutine, updateRoutine, exercises } = useArnold();
   const [name, setName] = useState(routine?.name || "");
   const [description, setDescription] = useState(routine?.description || "");
-  const [exercises, setExercises] = useState(() => exercisesFromRoutine(routine));
+  const [entries, setEntries] = useState(() => entriesFromRoutine(routine, exercises));
+  const [selectorOpen, setSelectorOpen] = useState(false);
   const [error, setError] = useState("");
   const [reordering, setReordering] = useState(false);
   const listRef = useRef(null);
-  const { contextSafe } = useGSAP({ scope: listRef });
+  useGSAP({ scope: listRef });
 
-  function updateExercise(id, field, value) {
-    setExercises((current) =>
-      current.map((exercise) =>
-        exercise.id === id ? { ...exercise, [field]: value } : exercise,
-      ),
-    );
-  }
-
-  const moveExercise = contextSafe((index, direction) => {
+  function moveExercise(index, direction) {
     const list = listRef.current;
     const nextIndex = index + direction;
     if (!list || nextIndex < 0 || nextIndex >= list.children.length) {
@@ -69,7 +53,7 @@ export function RoutineForm({ routine, onClose }) {
     }
 
     flushSync(() => {
-      setExercises((current) => {
+      setEntries((current) => {
         const next = [...current];
         const [item] = next.splice(index, 1);
         next.splice(nextIndex, 0, item);
@@ -95,19 +79,19 @@ export function RoutineForm({ routine, onClose }) {
         setReordering(false);
       },
     });
-  });
+  }
 
   function removeExercise(id) {
-    setExercises((current) =>
-      current.length === 1
-        ? [emptyExercise()]
-        : current.filter((exercise) => exercise.id !== id),
-    );
+    setEntries((current) => current.filter((item) => item.id !== id));
   }
 
   function onSubmit(event) {
     event.preventDefault();
-    const payload = { name, description, exercises };
+    const payload = {
+      name,
+      description,
+      exercises: entries.map((item) => ({ exerciseId: item.exerciseId })),
+    };
     const result = routine
       ? updateRoutine(routine.id, payload)
       : createRoutine(payload);
@@ -121,109 +105,103 @@ export function RoutineForm({ routine, onClose }) {
   }
 
   return (
-    <Modal
-      open
-      title={routine ? "Editar rutina" : "Crear rutina"}
-      onClose={onClose}
-      footer={
-        <Button type="submit" size="lg" form="routine-form">
-          Guardar
-        </Button>
-      }
-    >
-      <form id="routine-form" className={styles.form} onSubmit={onSubmit}>
-        <label>
-          Nombre
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-            maxLength={80}
-            placeholder="Pecho + tríceps"
-          />
-        </label>
-        <label>
-          Descripción
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={3}
-            maxLength={180}
-            placeholder="Pecho y tríceps"
-          />
-        </label>
-
-        <div className={styles.exercisesHeader}>
-          <h3>Ejercicios</h3>
-          <Button
-            variant="secondary"
-            icon={<Plus size={16} />}
-            onClick={() => setExercises((current) => [...current, emptyExercise()])}
-          >
-            Agregar
+    <>
+      <Modal
+        open
+        title={routine ? "Editar rutina" : "Crear rutina"}
+        onClose={onClose}
+        footer={
+          <Button type="submit" size="lg" form="routine-form">
+            Guardar
           </Button>
-        </div>
+        }
+      >
+        <form id="routine-form" className={styles.form} onSubmit={onSubmit}>
+          <label>
+            Nombre
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              maxLength={80}
+              placeholder="Pecho + tríceps"
+            />
+          </label>
+          <label>
+            Descripción
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={3}
+              maxLength={180}
+              placeholder="Pecho y tríceps"
+            />
+          </label>
 
-        <ul ref={listRef} className={styles.exercises}>
-          {exercises.map((exercise, index) => (
-            <li key={exercise.id} className={styles.exercise}>
-              <label>
-                Nombre del ejercicio
-                <input
-                  value={exercise.name}
-                  onChange={(event) =>
-                    updateExercise(exercise.id, "name", event.target.value)
-                  }
-                  placeholder="Press banca"
-                />
-              </label>
-              <label>
-                Detalle
-                <input
-                  value={exercise.details}
-                  onChange={(event) =>
-                    updateExercise(exercise.id, "details", event.target.value)
-                  }
-                  placeholder="3 x 10-12"
-                />
-              </label>
-              <label>
-                Imagen
-                <input
-                  value={exercise.imagePath}
-                  onChange={(event) =>
-                    updateExercise(exercise.id, "imagePath", event.target.value)
-                  }
-                  placeholder="/exercises/bench-press.webp"
-                />
-              </label>
-              <div className={styles.rowActions}>
-                <IconButton
-                  label="Mover hacia arriba"
-                  onClick={() => moveExercise(index, -1)}
-                  disabled={reordering || index === 0}
-                >
-                  <ArrowUp size={18} />
-                </IconButton>
-                <IconButton
-                  label="Mover hacia abajo"
-                  onClick={() => moveExercise(index, 1)}
-                  disabled={reordering || index === exercises.length - 1}
-                >
-                  <ArrowDown size={18} />
-                </IconButton>
-                <IconButton
-                  label="Eliminar ejercicio"
-                  onClick={() => removeExercise(exercise.id)}
-                >
-                  <Trash2 size={18} />
-                </IconButton>
-              </div>
-            </li>
-          ))}
-        </ul>
-        {error ? <p className={styles.error}>{error}</p> : null}
-      </form>
-    </Modal>
+          <div className={styles.exercisesHeader}>
+            <h3>Ejercicios</h3>
+            <Button
+              variant="secondary"
+              icon={<Plus size={16} />}
+              onClick={() => setSelectorOpen(true)}
+            >
+              Agregar ejercicio
+            </Button>
+          </div>
+
+          {entries.length === 0 ? (
+            <p className={styles.empty}>Elegí ejercicios de la biblioteca.</p>
+          ) : (
+            <ul ref={listRef} className={styles.exercises}>
+              {entries.map((entry, index) => {
+                const exercise = findExerciseById(exercises, entry.exerciseId);
+                return (
+                  <li key={entry.id} className={styles.exercise}>
+                    <div>
+                      <strong>{exercise?.name || "Ejercicio"}</strong>
+                      {exercise ? <span>{formatExerciseSummary(exercise)}</span> : null}
+                    </div>
+                    <div className={styles.rowActions}>
+                      <IconButton
+                        label="Mover hacia arriba"
+                        onClick={() => moveExercise(index, -1)}
+                        disabled={reordering || index === 0}
+                      >
+                        <ArrowUp size={18} />
+                      </IconButton>
+                      <IconButton
+                        label="Mover hacia abajo"
+                        onClick={() => moveExercise(index, 1)}
+                        disabled={reordering || index === entries.length - 1}
+                      >
+                        <ArrowDown size={18} />
+                      </IconButton>
+                      <IconButton
+                        label="Quitar ejercicio de la rutina"
+                        onClick={() => removeExercise(entry.id)}
+                      >
+                        <Trash2 size={18} />
+                      </IconButton>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {error ? <p className={styles.error}>{error}</p> : null}
+        </form>
+      </Modal>
+
+      <ExerciseSelector
+        open={selectorOpen}
+        onClose={() => setSelectorOpen(false)}
+        onSelect={(exercise) => {
+          setEntries((current) => [
+            ...current,
+            { id: createId(), exerciseId: exercise.id },
+          ]);
+        }}
+      />
+    </>
   );
 }
