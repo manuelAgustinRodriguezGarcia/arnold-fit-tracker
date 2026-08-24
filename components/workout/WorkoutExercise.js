@@ -29,7 +29,11 @@ export function WorkoutExercise({
         <div className={styles.copy}>
           <strong>{exercise.name}</strong>
           <span>{formatExerciseSummary(exercise)}</span>
-          {current ? <span className={styles.badge}>En curso</span> : null}
+          {current ? (
+            <span className={styles.badge}>
+              {complete ? "Último hecho" : "En curso"}
+            </span>
+          ) : null}
         </div>
       </div>
 

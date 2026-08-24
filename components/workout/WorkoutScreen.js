@@ -9,6 +9,7 @@ import {
   Pause,
   Play,
   Square,
+  StretchHorizontal,
 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -19,8 +20,10 @@ import { ExerciseWorkoutEditor } from "@/components/workout/ExerciseWorkoutEdito
 import { RestTimerPill } from "@/components/workout/RestTimerPill";
 import { WorkoutExercise } from "@/components/workout/WorkoutExercise";
 import { useArnold } from "@/hooks/useArnold";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useWorkoutTimer } from "@/hooks/useWorkoutTimer";
 import { EXERCISE_TYPE } from "@/lib/exercises";
+import { STRETCH_PRESETS } from "@/lib/stretchPresets";
 import { FATIGUE, WORKOUT_STATUS } from "@/lib/workout";
 import styles from "./WorkoutScreen.module.css";
 
@@ -52,12 +55,15 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     markCurrentExercise,
     swapWorkoutExercise,
     finishWorkout,
+    addExerciseToActiveWorkout,
   } = useArnold();
   const { display } = useWorkoutTimer(activeWorkout);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [fatigueOpen, setFatigueOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [replacing, setReplacing] = useState(null);
+  const [stretchOpen, setStretchOpen] = useState(false);
+  useBodyScrollLock(Boolean(activeWorkout));
 
   if (!activeWorkout) {
     return null;
@@ -126,6 +132,17 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         ))}
       </ul>
 
+      <div className={styles.stretchWrap}>
+        <Button
+          variant="secondary"
+          size="lg"
+          icon={<StretchHorizontal size={18} />}
+          onClick={() => setStretchOpen(true)}
+        >
+          Elongación final
+        </Button>
+      </div>
+
       <div className={styles.controls}>
         {paused ? (
           <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
@@ -191,6 +208,31 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
           }}
         />
       ) : null}
+
+      <Modal
+        open={stretchOpen}
+        title="Elongación final"
+        onClose={() => setStretchOpen(false)}
+      >
+        <div className={styles.stretchList}>
+          {STRETCH_PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              className={styles.stretchItem}
+              onClick={() => {
+                addExerciseToActiveWorkout(preset.id);
+                setStretchOpen(false);
+              }}
+            >
+              <strong>{preset.name}</strong>
+              <span>
+                {preset.defaultSets} × 1:30
+              </span>
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       <ExerciseSelector
         open={Boolean(replacing)}

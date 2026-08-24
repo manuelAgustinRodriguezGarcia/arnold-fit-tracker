@@ -9,6 +9,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
+import { ExerciseEditor } from "@/components/routines/ExerciseEditor";
 import { useArnold } from "@/hooks/useArnold";
 import { createId } from "@/lib/ids";
 import { findExerciseById, formatExerciseSummary, resolveRoutineExercises } from "@/lib/exercises";
@@ -32,6 +33,7 @@ export function RoutineForm({ routine, onClose }) {
   const [description, setDescription] = useState(routine?.description || "");
   const [entries, setEntries] = useState(() => entriesFromRoutine(routine, exercises));
   const [selectorOpen, setSelectorOpen] = useState(false);
+  const [creatorOpen, setCreatorOpen] = useState(false);
   const [error, setError] = useState("");
   const [reordering, setReordering] = useState(false);
   const listRef = useRef(null);
@@ -195,6 +197,7 @@ export function RoutineForm({ routine, onClose }) {
       <ExerciseSelector
         open={selectorOpen}
         onClose={() => setSelectorOpen(false)}
+        onCreate={() => setCreatorOpen(true)}
         onSelect={(exercise) => {
           setEntries((current) => [
             ...current,
@@ -202,6 +205,19 @@ export function RoutineForm({ routine, onClose }) {
           ]);
         }}
       />
+      {creatorOpen ? (
+        <ExerciseEditor
+          onClose={() => setCreatorOpen(false)}
+          onCreated={(exercise) => {
+            setEntries((current) => [
+              ...current,
+              { id: createId(), exerciseId: exercise.id },
+            ]);
+            setCreatorOpen(false);
+            setSelectorOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
 }

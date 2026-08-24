@@ -26,7 +26,7 @@ function valuesFromExercise(exercise) {
   };
 }
 
-export function ExerciseEditor({ exercise, onClose }) {
+export function ExerciseEditor({ exercise, onClose, onCreated }) {
   const { createExercise, updateExercise } = useArnold();
   const [values, setValues] = useState(() => valuesFromExercise(exercise));
   const [error, setError] = useState("");
@@ -80,6 +80,9 @@ export function ExerciseEditor({ exercise, onClose }) {
       return;
     }
 
+    if (!exercise && result.exercise) {
+      onCreated?.(result.exercise);
+    }
     onClose();
   }
 

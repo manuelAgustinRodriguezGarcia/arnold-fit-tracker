@@ -15,6 +15,7 @@ import { StartWorkoutPicker } from "@/components/routines/StartWorkoutPicker";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { SessionDetail } from "@/components/progress/SessionDetail";
 import { WorkoutScreen } from "@/components/workout/WorkoutScreen";
+import { SettingsModal } from "@/components/settings/SettingsModal";
 import { useArnold } from "@/hooks/useArnold";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { NAV_VIEWS, pathToView, viewToPath } from "@/lib/navigation";
@@ -45,6 +46,7 @@ export function AppShell() {
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [activeConflict, setActiveConflict] = useState(false);
   const [sessionDetail, setSessionDetail] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const shellRef = useRef(null);
   const overlayOpen =
     workoutOpen ||
@@ -55,7 +57,8 @@ export function AppShell() {
     Boolean(deleteTarget) ||
     Boolean(exerciseToDelete) ||
     Boolean(sessionToDelete) ||
-    activeConflict;
+    activeConflict ||
+    settingsOpen;
 
   const navigateTo = useCallback(
     (nextView) => {
@@ -137,6 +140,7 @@ export function AppShell() {
                 onCreateRoutine={openCreateForm}
                 onStartWorkout={handleQuickStart}
                 onContinueWorkout={() => setWorkoutOpen(true)}
+                onOpenSettings={() => setSettingsOpen(true)}
               />
             ) : null}
             {view === "routines" ? (
@@ -254,6 +258,7 @@ export function AppShell() {
         }}
         onClose={() => setActiveConflict(false)}
       />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <Toast notice={notice} onClear={clearNotice} />
     </>
   );

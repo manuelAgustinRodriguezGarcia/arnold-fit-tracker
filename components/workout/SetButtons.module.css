@@ -20,7 +20,7 @@
 .set[aria-pressed="true"] {
   background: var(--completed-set);
   border-color: var(--completed-set);
-  color: var(--ivory);
+  color: var(--completed-set-text);
 }
 
 .set:active {

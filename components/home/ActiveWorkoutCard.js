@@ -20,14 +20,18 @@ export function ActiveWorkoutCard({ workout, onContinue }) {
           <p className={styles.currentExercise}>{progress.exercise.name}</p>
           <p className={styles.setProgress}>
             {progress.complete
-              ? "Completado"
+              ? `${progress.total} series`
               : `Serie ${progress.currentNumber} de ${progress.total}`}
           </p>
         </>
       ) : null}
       <p className={styles.timer}>{display}</p>
       <p className={styles.status}>
-        {workout.status === WORKOUT_STATUS.PAUSED ? "Pausado" : "En curso"}
+        {workout.status === WORKOUT_STATUS.PAUSED
+          ? "Pausado"
+          : progress?.complete
+            ? "Último hecho"
+            : "En curso"}
       </p>
       <Button size="lg" icon={<Dumbbell size={18} />} onClick={onContinue}>
         Continuar

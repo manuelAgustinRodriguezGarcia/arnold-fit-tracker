@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import styles from "./Modal.module.css";
 
 const EXIT_MS = 200;
@@ -96,6 +97,8 @@ export function Modal({
     return () => clearExitTimeout();
   }, []);
 
+  useBodyScrollLock(visible);
+
   useEffect(() => {
     if (!visible) {
       return undefined;
@@ -107,12 +110,8 @@ export function Modal({
       }
     }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [visible]);

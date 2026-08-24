@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   getArnoldServerSnapshot,
   getArnoldStoreSnapshot,
@@ -9,12 +9,15 @@ import {
 } from "@/lib/arnoldStore";
 import { createId } from "@/lib/ids";
 import { createExerciseRecord, findExerciseById } from "@/lib/exercises";
+import { normalizeThemePalette } from "@/lib/themes";
 import {
   adjustRestTimer,
   applyResizeSets,
   applySetFields,
   applySetToggle,
   applyTimedSetComplete,
+  applyExerciseDraft,
+  appendExerciseToWorkout,
   clearExpiredRest,
   createActiveWorkout,
   createSession,
@@ -61,6 +64,11 @@ export function ArnoldProvider({ children }) {
     getServerReady,
   );
   const [notice, setNotice] = useState(null);
+
+  useEffect(() => {
+    const theme = state.settings?.themePalette === "stone" ? "stone" : "classic";
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [state.settings?.themePalette]);
 
   const showNotice = useCallback((message) => {
     setNotice({ id: createId(), message });
@@ -306,6 +314,60 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
+  const updateSettings = useCallback((patch) => {
+    if (patch?.themePalette) {
+      document.documentElement.setAttribute(
+        "data-theme",
+        normalizeThemePalette(patch.themePalette),
+      );
+    }
+    updateArnoldStore((current) => ({
+      ...current,
+      settings: {
+        ...(current.settings || {}),
+        ...patch,
+        ...(patch.themePalette
+          ? { themePalette: normalizeThemePalette(patch.themePalette) }
+          : {}),
+      },
+    }));
+  }, []);
+
+  const saveWorkoutExercise = useCallback((workoutExerciseId, nextSets) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: applyExerciseDraft(
+          current.activeWorkout,
+          workoutExerciseId,
+          nextSets,
+        ),
+      };
+    });
+  }, []);
+
+  const addExerciseToActiveWorkout = useCallback((exerciseId) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      const libraryExercise = findExerciseById(current.exercises, exerciseId);
+      if (!libraryExercise) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: appendExerciseToWorkout(
+          current.activeWorkout,
+          libraryExercise,
+        ),
+      };
+    });
+  }, []);
+
   const changeWorkoutSetCount = useCallback((workoutExerciseId, nextCount) => {
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
@@ -458,6 +520,7 @@ export function ArnoldProvider({ children }) {
       notice,
       showNotice,
       clearNotice,
+      updateSettings,
       createExercise,
       updateExercise,
       deleteExercise,
@@ -472,6 +535,8 @@ export function ArnoldProvider({ children }) {
       toggleSetDone,
       updateWorkoutSet,
       changeWorkoutSetCount,
+      saveWorkoutExercise,
+      addExerciseToActiveWorkout,
       adjustActiveRest,
       skipActiveRest,
       expireActiveRest,
@@ -490,6 +555,7 @@ export function ArnoldProvider({ children }) {
       notice,
       showNotice,
       clearNotice,
+      updateSettings,
       createExercise,
       updateExercise,
       deleteExercise,
@@ -504,6 +570,8 @@ export function ArnoldProvider({ children }) {
       toggleSetDone,
       updateWorkoutSet,
       changeWorkoutSetCount,
+      saveWorkoutExercise,
+      addExerciseToActiveWorkout,
       adjustActiveRest,
       skipActiveRest,
       expireActiveRest,

@@ -1,53 +1,115 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
-import { EXERCISE_TYPE, parseRepsInput, parseWeightInput } from "@/lib/exercises";
+import { EXERCISE_TYPE, parseRepsInput } from "@/lib/exercises";
 import { getMinSetCount } from "@/lib/workoutSets";
 import styles from "./ExerciseWorkoutEditor.module.css";
 
-function DraftInput({
-  value,
-  onCommit,
-  inputMode,
-  min,
-  step,
-  suffix,
-}) {
-  const [text, setText] = useState(value == null ? "" : String(value));
-  const [source, setSource] = useState(value);
-
-  if (value !== source) {
-    setSource(value);
-    setText(value == null ? "" : String(value));
+function parseDraftWeight(text) {
+  if (text === "" || text == null) {
+    return { ok: true, value: null };
   }
+  const parsed = Number(String(text).replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return { ok: false, value: null };
+  }
+  return { ok: true, value: parsed };
+}
 
-  return (
-    <div className={suffix ? styles.suffixField : undefined}>
-      <input
-        inputMode={inputMode}
-        min={min}
-        step={step}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onBlur={() => onCommit(text)}
-      />
-      {suffix ? <span className={styles.suffix}>{suffix}</span> : null}
-    </div>
-  );
+function draftsFromExercise(exercise) {
+  return (exercise?.sets || []).map((set) => ({
+    id: set.id,
+    reps: set.reps == null ? "" : String(set.reps),
+    weightKg: set.weightKg == null ? "" : String(set.weightKg),
+    durationSeconds: set.durationSeconds == null ? "" : String(set.durationSeconds),
+  }));
 }
 
 export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
-  const { changeWorkoutSetCount, updateWorkoutSet } = useArnold();
+  const { saveWorkoutExercise } = useArnold();
+  const minSets = exercise ? getMinSetCount(exercise) : 1;
+  const timed = exercise?.type === EXERCISE_TYPE.TIMED;
+  const [count, setCount] = useState(() => String(exercise?.sets?.length || 1));
+  const [drafts, setDrafts] = useState(() => draftsFromExercise(exercise));
+  const [error, setError] = useState("");
+
+  const visibleDrafts = useMemo(() => {
+    const nextCount = Math.max(minSets, Math.round(Number(count)) || minSets);
+    if (drafts.length === nextCount) {
+      return drafts;
+    }
+    if (drafts.length > nextCount) {
+      return drafts.slice(0, nextCount);
+    }
+    const extras = [];
+    const last = drafts[drafts.length - 1];
+    for (let index = drafts.length; index < nextCount; index += 1) {
+      extras.push({
+        id: `draft-${index}`,
+        reps: last?.reps ?? "",
+        weightKg: last?.weightKg ?? "",
+        durationSeconds: last?.durationSeconds ?? "",
+      });
+    }
+    return [...drafts, ...extras];
+  }, [count, drafts, minSets]);
 
   if (!exercise) {
     return null;
   }
 
-  const minSets = getMinSetCount(exercise);
-  const timed = exercise.type === EXERCISE_TYPE.TIMED;
+  function updateDraft(index, field, value) {
+    setDrafts((current) => {
+      const next = visibleDrafts.map((item) => ({ ...item }));
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+    setError("");
+  }
+
+  function onSave() {
+    const nextCount = Math.round(Number(count));
+    if (!Number.isFinite(nextCount) || nextCount < 1) {
+      setError("Las series deben ser un número positivo.");
+      return;
+    }
+    if (nextCount < minSets) {
+      setError("No se pueden quitar series ya completadas.");
+      return;
+    }
+
+    const nextSets = [];
+    for (let index = 0; index < nextCount; index += 1) {
+      const draft = visibleDrafts[index];
+      if (timed) {
+        const duration = Number(draft.durationSeconds);
+        if (!Number.isFinite(duration) || duration <= 0) {
+          setError("La duración debe ser mayor a 0.");
+          return;
+        }
+        nextSets.push({ durationSeconds: Math.round(duration) });
+      } else {
+        const reps = parseRepsInput(draft.reps);
+        if (reps == null) {
+          setError("Las repeticiones deben ser un entero de 1 o más.");
+          return;
+        }
+        const weight = parseDraftWeight(draft.weightKg);
+        if (!weight.ok) {
+          setError("El peso debe ser un número mayor o igual a 0.");
+          return;
+        }
+        nextSets.push({ reps, weightKg: weight.value });
+      }
+    }
+
+    saveWorkoutExercise(exercise.workoutExerciseId, nextSets);
+    onClose();
+  }
 
   return (
     <Modal
@@ -55,9 +117,14 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
       title="Editar series"
       onClose={onClose}
       footer={
-        <Button variant="secondary" size="lg" onClick={onReplace}>
-          Cambiar ejercicio
-        </Button>
+        <>
+          <Button size="lg" icon={<Check size={18} />} onClick={onSave}>
+            Guardar
+          </Button>
+          <Button variant="secondary" size="lg" onClick={onClose}>
+            Cancelar
+          </Button>
+        </>
       }
     >
       <div className={styles.form}>
@@ -67,30 +134,23 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
             type="number"
             inputMode="numeric"
             min={minSets}
-            value={exercise.sets.length}
-            onChange={(event) =>
-              changeWorkoutSetCount(
-                exercise.workoutExerciseId,
-                Number(event.target.value),
-              )
-            }
+            value={count}
+            onChange={(event) => setCount(event.target.value)}
           />
         </label>
 
-        {exercise.sets.map((set) => (
-          <div key={set.id} className={styles.set}>
-            <p className={styles.setTitle}>Serie {set.number}</p>
+        {visibleDrafts.map((set, index) => (
+          <div key={set.id || index} className={styles.set}>
+            <p className={styles.setTitle}>Serie {index + 1}</p>
             {timed ? (
               <label>
                 Tiempo (s)
-                <DraftInput
-                  value={set.durationSeconds}
+                <input
                   inputMode="numeric"
                   min="1"
-                  onCommit={(text) =>
-                    updateWorkoutSet(exercise.workoutExerciseId, set.id, {
-                      durationSeconds: Math.max(1, Number(text) || 1),
-                    })
+                  value={set.durationSeconds}
+                  onChange={(event) =>
+                    updateDraft(index, "durationSeconds", event.target.value)
                   }
                 />
               </label>
@@ -98,36 +158,38 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
               <div className={styles.row}>
                 <label>
                   Repeticiones
-                  <DraftInput
-                    value={set.reps}
+                  <input
                     inputMode="numeric"
                     min="1"
-                    onCommit={(text) =>
-                      updateWorkoutSet(exercise.workoutExerciseId, set.id, {
-                        reps: parseRepsInput(text) ?? set.reps,
-                      })
-                    }
+                    value={set.reps}
+                    onChange={(event) => updateDraft(index, "reps", event.target.value)}
                   />
                 </label>
                 <label>
                   Peso
-                  <DraftInput
-                    value={set.weightKg}
-                    inputMode="decimal"
-                    min="0"
-                    step="0.5"
-                    suffix="KG"
-                    onCommit={(text) =>
-                      updateWorkoutSet(exercise.workoutExerciseId, set.id, {
-                        weightKg: parseWeightInput(text),
-                      })
-                    }
-                  />
+                  <div className={styles.suffixField}>
+                    <input
+                      inputMode="decimal"
+                      min="0"
+                      step="0.5"
+                      value={set.weightKg}
+                      onChange={(event) =>
+                        updateDraft(index, "weightKg", event.target.value)
+                      }
+                    />
+                    <span className={styles.suffix}>KG</span>
+                  </div>
                 </label>
               </div>
             )}
           </div>
         ))}
+
+        {error ? <p className={styles.error}>{error}</p> : null}
+
+        <Button variant="ghost" size="lg" onClick={onReplace}>
+          Cambiar ejercicio
+        </Button>
       </div>
     </Modal>
   );

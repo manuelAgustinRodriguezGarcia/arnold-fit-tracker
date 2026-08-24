@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
@@ -12,7 +12,13 @@ import {
 } from "@/lib/exercises";
 import styles from "./ExerciseSelector.module.css";
 
-export function ExerciseSelector({ open, title = "Agregar ejercicio", onClose, onSelect }) {
+export function ExerciseSelector({
+  open,
+  title = "Agregar ejercicio",
+  onClose,
+  onSelect,
+  onCreate,
+}) {
   const { exercises } = useArnold();
   const [query, setQuery] = useState("");
 
@@ -33,9 +39,16 @@ export function ExerciseSelector({ open, title = "Agregar ejercicio", onClose, o
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar"
+          placeholder="Buscar ejercicio..."
         />
       </label>
+
+      {onCreate ? (
+        <button type="button" className={styles.create} onClick={onCreate}>
+          <Plus size={18} />
+          Crear nuevo ejercicio
+        </button>
+      ) : null}
 
       {filtered.length === 0 ? (
         <EmptyState title="No hay ejercicios para mostrar" />

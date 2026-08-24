@@ -1,0 +1,55 @@
+.section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.section h3 {
+  font-size: 1rem;
+}
+
+.section p {
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.option {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--stone-taupe);
+  background: var(--ivory);
+  text-align: left;
+}
+
+.option[aria-checked="true"] {
+  border-color: var(--bronze-dark);
+  box-shadow: 0 0 0 1px var(--bronze-dark);
+}
+
+.optionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--charcoal);
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.swatch {
+  display: block;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--stone-taupe);
+}

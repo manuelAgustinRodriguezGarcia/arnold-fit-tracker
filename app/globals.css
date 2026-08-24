@@ -36,12 +36,29 @@
   --z-splash: 15;
   --font-sans: var(--font-source-sans), "Source Sans 3", system-ui, sans-serif;
   --font-display: var(--font-sans);
+  --completed-set-text: var(--ivory);
+  --page-bg: var(--stone-light);
+}
+
+[data-theme="stone"] {
+  --marble: #f4f4f1;
+  --ivory: #fafaf8;
+  --stone-light: #e7e7e2;
+  --stone-taupe: #b8b8b1;
+  --stone-gray: #72726d;
+  --charcoal: #292927;
+  --bronze-dark: #393936;
+  --bronze-aged: #565650;
+  --completed-set: #393936;
+  --completed-set-text: #fafaf8;
+  --page-bg: #f4f4f1;
 }
 
 html {
   height: 100%;
   color-scheme: light;
   -webkit-tap-highlight-color: transparent;
+  background: var(--page-bg);
 }
 
 html,
@@ -53,7 +70,7 @@ body {
 body {
   min-height: 100dvh;
   color: var(--charcoal);
-  background: var(--stone-light);
+  background: var(--page-bg);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;

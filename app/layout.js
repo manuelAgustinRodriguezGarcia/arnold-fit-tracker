@@ -56,9 +56,14 @@ export const viewport = {
   viewportFit: "cover",
 };
 
+const THEME_BOOT = `(function(){try{var raw=localStorage.getItem("arnold:v1");var theme="classic";if(raw){var parsed=JSON.parse(raw);if(parsed&&parsed.settings&&parsed.settings.themePalette==="stone"){theme="stone";}}document.documentElement.setAttribute("data-theme",theme);}catch(e){document.documentElement.setAttribute("data-theme","classic");}})();`;
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="es-AR" className={sourceSans.variable}>
+    <html lang="es-AR" className={sourceSans.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      </head>
       <body>
         <AppClient>{children}</AppClient>
       </body>

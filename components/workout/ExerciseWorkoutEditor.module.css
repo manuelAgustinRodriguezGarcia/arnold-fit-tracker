@@ -54,3 +54,9 @@
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+.error {
+  color: #9b3d32;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

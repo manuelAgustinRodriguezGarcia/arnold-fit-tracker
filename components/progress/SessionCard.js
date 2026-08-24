@@ -72,7 +72,6 @@ export function SessionCard({ session, onOpen, onDelete }) {
 
   useEffect(() => {
     if (!confirming) {
-      setArmed(false);
       return undefined;
     }
 
@@ -91,6 +90,7 @@ export function SessionCard({ session, onOpen, onDelete }) {
     function onKeyDown(event) {
       if (event.key === "Escape") {
         setConfirming(false);
+        setArmed(false);
       }
     }
 
@@ -122,6 +122,7 @@ export function SessionCard({ session, onOpen, onDelete }) {
       timerRef.current = null;
       originRef.current = null;
       suppressClickRef.current = true;
+      setArmed(false);
       setConfirming(true);
     }, HOLD_MS);
   }
@@ -199,7 +200,10 @@ export function SessionCard({ session, onOpen, onDelete }) {
               type="button"
               className={styles.cancel}
               disabled={!armed}
-              onClick={() => setConfirming(false)}
+              onClick={() => {
+                setConfirming(false);
+                setArmed(false);
+              }}
             >
               Cancelar
             </button>

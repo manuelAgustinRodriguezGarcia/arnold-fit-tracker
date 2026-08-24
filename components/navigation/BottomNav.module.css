@@ -21,7 +21,7 @@
   gap: 4px;
   min-height: var(--touch);
   padding: 8px 0 6px;
-  background: color-mix(in srgb, var(--bronze-dark) 16%, transparent);
+  background: var(--stone-light);
   color: var(--bronze-dark);
   font-size: 0.75rem;
   font-weight: 600;

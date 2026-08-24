@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartNoAxesColumnIncreasing, Play, Plus } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, Play, Plus, Settings } from "lucide-react";
 import { InstallPWA } from "@/components/install/InstallPWA";
 import { ActiveWorkoutCard } from "@/components/home/ActiveWorkoutCard";
 import { useArnold } from "@/hooks/useArnold";
@@ -11,6 +11,7 @@ export function HomeView({
   onCreateRoutine,
   onStartWorkout,
   onContinueWorkout,
+  onOpenSettings,
 }) {
   const { routines, sessions, activeWorkout } = useArnold();
   const stats = getWeeklyStats(sessions);
@@ -42,6 +43,11 @@ export function HomeView({
           </span>
         </button>
       </div>
+
+      <button type="button" className={styles.settings} onClick={onOpenSettings}>
+        <Settings size={20} />
+        Ajustes
+      </button>
 
       <WeeklySummary stats={stats} />
 
