@@ -51,18 +51,30 @@
   outline: none;
 }
 
+.sheet.dragging {
+  animation: none;
+  will-change: transform;
+}
+
 .handleWrap {
   display: flex;
   justify-content: center;
-  padding: 0 0 var(--space-2);
+  margin: calc(var(--space-3) * -1) calc(var(--space-4) * -1) 0;
+  padding: 8px var(--space-4) var(--space-2);
 }
 
 .handleButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  min-height: 28px;
+  width: 100%;
+  min-height: 36px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.handleButton:active {
+  cursor: grabbing;
 }
 
 .handle {

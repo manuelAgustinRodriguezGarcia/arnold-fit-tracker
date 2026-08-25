@@ -12,7 +12,9 @@
 }
 
 .lg {
-  gap: var(--space-3);
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .lg .main {
@@ -30,4 +32,29 @@
 .lg .side {
   min-width: 52px;
   min-height: 52px;
+}
+
+.lg .extra {
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--stone-gray);
+  transition:
+    color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.lg .extraActive {
+  color: var(--bronze-dark);
+  background: color-mix(in srgb, var(--bronze-dark) 14%, transparent);
+}
+
+.lg .extra:disabled {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg .extra {
+    transition: none;
+  }
 }

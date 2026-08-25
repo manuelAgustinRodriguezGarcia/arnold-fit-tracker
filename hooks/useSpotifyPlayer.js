@@ -10,6 +10,8 @@ import {
   playContext,
   resumePlayback,
   seekPlayback,
+  setRepeatMode,
+  setShuffle,
   skipToNext,
   skipToPrevious,
 } from "@/lib/spotify/api";
@@ -24,7 +26,7 @@ import {
   getSpotifyClientId,
 } from "@/lib/spotify/constants";
 import { SpotifyApiError, userFacingSpotifyMessage } from "@/lib/spotify/errors";
-import { normalizePlayback, normalizePlaylist } from "@/lib/spotify/normalize";
+import { getNextRepeatMode, normalizePlayback, normalizePlaylist } from "@/lib/spotify/normalize";
 import { hasSpotifySession, SPOTIFY_SESSION_EVENT } from "@/lib/spotify/storage";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
@@ -60,6 +62,8 @@ export function useSpotifyPlayer() {
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState("");
   const [skipBusy, setSkipBusy] = useState(false);
+  const [shuffleBusy, setShuffleBusy] = useState(false);
+  const [repeatBusy, setRepeatBusy] = useState(false);
   const [startingPlaylistId, setStartingPlaylistId] = useState(null);
   const [isSeeking, setIsSeeking] = useState(false);
 
@@ -68,6 +72,8 @@ export function useSpotifyPlayer() {
   const playlistsFetchedRef = useRef(false);
   const noticeIdRef = useRef(0);
   const mountedRef = useRef(true);
+  const shuffleBusyRef = useRef(false);
+  const repeatBusyRef = useRef(false);
 
   useEffect(() => {
     playbackRef.current = playback;
@@ -238,6 +244,62 @@ export function useSpotifyPlayer() {
     runControl(skipToPrevious, {
       lockSkip: true,
       failureMessage: MESSAGES.skipFailed,
+    });
+  }, [runControl]);
+
+  const toggleShuffle = useCallback(() => {
+    if (shuffleBusyRef.current) {
+      return;
+    }
+    const current = playbackRef.current;
+    if (!current?.canShuffle) {
+      return;
+    }
+    const nextEnabled = !current.shuffleEnabled;
+    const previousEnabled = current.shuffleEnabled;
+    shuffleBusyRef.current = true;
+    setShuffleBusy(true);
+    runControl(() => setShuffle(nextEnabled), {
+      optimistic: () => {
+        setPlayback((prev) => (prev ? { ...prev, shuffleEnabled: nextEnabled } : prev));
+      },
+      revert: () => {
+        setPlayback((prev) =>
+          prev ? { ...prev, shuffleEnabled: previousEnabled } : prev,
+        );
+      },
+    }).finally(() => {
+      shuffleBusyRef.current = false;
+      if (mountedRef.current) {
+        setShuffleBusy(false);
+      }
+    });
+  }, [runControl]);
+
+  const cycleRepeatMode = useCallback(() => {
+    if (repeatBusyRef.current) {
+      return;
+    }
+    const current = playbackRef.current;
+    if (!current?.canRepeat) {
+      return;
+    }
+    const previousMode = current.repeatMode || "off";
+    const nextMode = getNextRepeatMode(previousMode);
+    repeatBusyRef.current = true;
+    setRepeatBusy(true);
+    runControl(() => setRepeatMode(nextMode), {
+      optimistic: () => {
+        setPlayback((prev) => (prev ? { ...prev, repeatMode: nextMode } : prev));
+      },
+      revert: () => {
+        setPlayback((prev) => (prev ? { ...prev, repeatMode: previousMode } : prev));
+      },
+    }).finally(() => {
+      repeatBusyRef.current = false;
+      if (mountedRef.current) {
+        setRepeatBusy(false);
+      }
     });
   }, [runControl]);
 
@@ -419,6 +481,8 @@ export function useSpotifyPlayer() {
     error: !isOnline && isConnected ? MESSAGES.offline : error,
     notice,
     skipBusy,
+    shuffleBusy,
+    repeatBusy,
     startingPlaylistId,
     isSeeking,
     setIsSeeking,
@@ -429,6 +493,8 @@ export function useSpotifyPlayer() {
     pause,
     next,
     previous,
+    toggleShuffle,
+    cycleRepeatMode,
     seek,
     playPlaylist,
     loadPlaylists,

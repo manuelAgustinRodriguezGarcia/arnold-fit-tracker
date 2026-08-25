@@ -1,8 +1,20 @@
 "use client";
 
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import styles from "./SpotifyPlaybackControls.module.css";
+
+const REPEAT_TITLE = {
+  off: "Repetición desactivada",
+  context: "Repetir lista",
+  track: "Repetir canción",
+};
+
+const REPEAT_ACTION_LABEL = {
+  off: "Repetir lista",
+  context: "Repetir canción",
+  track: "Desactivar repetición",
+};
 
 export function SpotifyPlaybackControls({
   isPlaying,
@@ -10,16 +22,47 @@ export function SpotifyPlaybackControls({
   canPause = true,
   canSkipPrevious = true,
   canSkipNext = true,
+  canShuffle = false,
+  canRepeat = false,
+  shuffleEnabled = false,
+  repeatMode = "off",
   skipBusy = false,
+  shuffleBusy = false,
+  repeatBusy = false,
   size = "md",
   onPrevious,
   onToggle,
   onNext,
+  onShuffle,
+  onRepeat,
 }) {
   const playEnabled = isPlaying ? canPause : canPlay;
+  const extras = size === "lg";
+  const resolvedRepeat = REPEAT_TITLE[repeatMode] ? repeatMode : "off";
+  const repeatActive = resolvedRepeat !== "off";
 
   return (
     <div className={`${styles.row} ${styles[size]}`}>
+      {extras ? (
+        <IconButton
+          label={
+            shuffleEnabled
+              ? "Desactivar reproducción aleatoria"
+              : "Activar reproducción aleatoria"
+          }
+          title={
+            shuffleEnabled
+              ? "Desactivar reproducción aleatoria"
+              : "Activar reproducción aleatoria"
+          }
+          aria-pressed={shuffleEnabled}
+          onClick={onShuffle}
+          disabled={!canShuffle || shuffleBusy}
+          className={`${styles.extra} ${shuffleEnabled ? styles.extraActive : ""}`}
+        >
+          <Shuffle size={22} />
+        </IconButton>
+      ) : null}
       <IconButton
         label="Canción anterior"
         onClick={onPrevious}
@@ -48,6 +91,18 @@ export function SpotifyPlaybackControls({
       >
         <SkipForward size={size === "lg" ? 26 : 18} fill="currentColor" />
       </IconButton>
+      {extras ? (
+        <IconButton
+          label={REPEAT_ACTION_LABEL[resolvedRepeat]}
+          title={REPEAT_TITLE[resolvedRepeat]}
+          aria-pressed={repeatActive}
+          onClick={onRepeat}
+          disabled={!canRepeat || repeatBusy}
+          className={`${styles.extra} ${repeatActive ? styles.extraActive : ""}`}
+        >
+          {resolvedRepeat === "track" ? <Repeat1 size={22} /> : <Repeat size={22} />}
+        </IconButton>
+      ) : null}
     </div>
   );
 }

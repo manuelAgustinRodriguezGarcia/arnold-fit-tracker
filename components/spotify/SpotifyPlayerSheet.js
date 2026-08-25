@@ -9,9 +9,18 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import styles from "./SpotifyPlayerSheet.module.css";
 
 const EXIT_MS = 200;
+const DRAG_CLICK_SLOP = 8;
+const CLOSE_MIN_PX = 72;
+const CLOSE_MAX_PX = 132;
+const CLOSE_RATIO = 0.2;
+const FLICK_VELOCITY = 0.55;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function closeThreshold(height) {
+  return Math.min(CLOSE_MAX_PX, Math.max(CLOSE_MIN_PX, height * CLOSE_RATIO));
 }
 
 export function SpotifyPlayerSheet({
@@ -22,6 +31,8 @@ export function SpotifyPlayerSheet({
   playlistsLoading,
   playlistsError,
   skipBusy,
+  shuffleBusy,
+  repeatBusy,
   startingPlaylistId,
   error,
   isOnline,
@@ -29,6 +40,8 @@ export function SpotifyPlayerSheet({
   onPrevious,
   onToggle,
   onNext,
+  onShuffle,
+  onRepeat,
   onSeekStart,
   onSeekInput,
   onSeekCommit,
@@ -38,10 +51,23 @@ export function SpotifyPlayerSheet({
   const [visible, setVisible] = useState(open);
   const [closing, setClosing] = useState(false);
   const sheetRef = useRef(null);
+  const backdropRef = useRef(null);
+  const handleRef = useRef(null);
   const previousFocusRef = useRef(null);
   const exitTimeoutRef = useRef(0);
   const onCloseRef = useRef(onClose);
   const visibleRef = useRef(open);
+  const skipExitRef = useRef(false);
+  const dragRef = useRef({
+    active: false,
+    pointerId: null,
+    startY: 0,
+    lastY: 0,
+    lastT: 0,
+    offset: 0,
+    velocity: 0,
+    moved: false,
+  });
 
   visibleRef.current = visible;
   onCloseRef.current = onClose;
@@ -72,12 +98,13 @@ export function SpotifyPlayerSheet({
 
   useEffect(() => {
     if (open) {
+      skipExitRef.current = false;
       clearExitTimeout();
       setVisible(true);
       setClosing(false);
       return undefined;
     }
-    if (!visibleRef.current) {
+    if (skipExitRef.current || !visibleRef.current) {
       return undefined;
     }
     playExit();
@@ -117,6 +144,137 @@ export function SpotifyPlayerSheet({
   }, [visible]);
 
   useEffect(() => {
+    const handle = handleRef.current;
+    const sheet = sheetRef.current;
+    const backdrop = backdropRef.current;
+    if (!visible || !handle || !sheet) {
+      return undefined;
+    }
+
+    const drag = dragRef.current;
+
+    function setOffset(px, withTransition) {
+      const next = Math.max(0, px);
+      sheet.style.transition = withTransition
+        ? `transform ${EXIT_MS}ms var(--ease-in, ease)`
+        : "none";
+      sheet.style.transform = `translateY(${next}px)`;
+      if (backdrop) {
+        const height = sheet.getBoundingClientRect().height || 1;
+        const progress = Math.min(1, next / closeThreshold(height));
+        backdrop.style.transition = withTransition
+          ? `opacity ${EXIT_MS}ms ease`
+          : "none";
+        backdrop.style.opacity = String(1 - progress * 0.6);
+      }
+    }
+
+    function clearInline() {
+      sheet.style.transition = "";
+      sheet.style.transform = "";
+      sheet.style.animation = "none";
+      if (backdrop) {
+        backdrop.style.transition = "";
+        backdrop.style.opacity = "";
+      }
+    }
+
+    function finishClose() {
+      skipExitRef.current = true;
+      visibleRef.current = false;
+      setVisible(false);
+      setClosing(false);
+      onCloseRef.current();
+    }
+
+    function onPointerDown(event) {
+      if (event.pointerType === "mouse" && event.button !== 0) {
+        return;
+      }
+      drag.active = true;
+      drag.pointerId = event.pointerId;
+      drag.startY = event.clientY;
+      drag.lastY = event.clientY;
+      drag.lastT = event.timeStamp;
+      drag.offset = 0;
+      drag.velocity = 0;
+      drag.moved = false;
+      sheet.style.animation = "none";
+      sheet.classList.add(styles.dragging);
+      handle.setPointerCapture(event.pointerId);
+    }
+
+    function onPointerMove(event) {
+      if (!drag.active || event.pointerId !== drag.pointerId) {
+        return;
+      }
+      const dy = event.clientY - drag.startY;
+      const dt = Math.max(1, event.timeStamp - drag.lastT);
+      drag.velocity = (event.clientY - drag.lastY) / dt;
+      drag.lastY = event.clientY;
+      drag.lastT = event.timeStamp;
+      if (Math.abs(dy) > DRAG_CLICK_SLOP) {
+        drag.moved = true;
+      }
+      if (prefersReducedMotion()) {
+        return;
+      }
+      if (dy > 0) {
+        event.preventDefault();
+        drag.offset = dy;
+        setOffset(dy, false);
+      }
+    }
+
+    function onPointerUp(event) {
+      if (!drag.active || event.pointerId !== drag.pointerId) {
+        return;
+      }
+      drag.active = false;
+      const height = sheet.getBoundingClientRect().height || window.innerHeight;
+      const dy = Math.max(0, event.clientY - drag.startY);
+      if (prefersReducedMotion()) {
+        if (dy > DRAG_CLICK_SLOP) {
+          finishClose();
+        }
+        return;
+      }
+      const shouldClose =
+        drag.offset >= closeThreshold(height) ||
+        (drag.moved && drag.velocity > FLICK_VELOCITY && drag.offset > DRAG_CLICK_SLOP);
+
+      if (shouldClose) {
+        skipExitRef.current = true;
+        setOffset(height, true);
+        window.setTimeout(finishClose, EXIT_MS);
+        return;
+      }
+
+      sheet.classList.remove(styles.dragging);
+
+      if (drag.offset > 0) {
+        setOffset(0, true);
+        window.setTimeout(() => {
+          if (!drag.active) {
+            clearInline();
+          }
+        }, EXIT_MS);
+      }
+    }
+
+    handle.addEventListener("pointerdown", onPointerDown);
+    handle.addEventListener("pointermove", onPointerMove, { passive: false });
+    handle.addEventListener("pointerup", onPointerUp);
+    handle.addEventListener("pointercancel", onPointerUp);
+    return () => {
+      handle.removeEventListener("pointerdown", onPointerDown);
+      handle.removeEventListener("pointermove", onPointerMove);
+      handle.removeEventListener("pointerup", onPointerUp);
+      handle.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, [visible]);
+
+  useEffect(() => {
     if (visible) {
       return undefined;
     }
@@ -142,6 +300,7 @@ export function SpotifyPlayerSheet({
   return (
     <div className={`${styles.overlay} ${closing ? styles.closing : ""}`}>
       <button
+        ref={backdropRef}
         type="button"
         className={styles.backdrop}
         aria-label="Contraer reproductor"
@@ -157,10 +316,17 @@ export function SpotifyPlayerSheet({
       >
         <div className={styles.handleWrap}>
           <button
+            ref={handleRef}
             type="button"
             className={styles.handleButton}
             aria-label="Contraer reproductor"
-            onClick={() => onCloseRef.current()}
+            onClick={(event) => {
+              if (dragRef.current.moved) {
+                event.preventDefault();
+                return;
+              }
+              onCloseRef.current();
+            }}
           >
             <span className={styles.handle} aria-hidden="true" />
           </button>
@@ -190,10 +356,18 @@ export function SpotifyPlayerSheet({
             canPause={idle ? false : playback.canPause}
             canSkipPrevious={idle ? false : playback.canSkipPrevious}
             canSkipNext={idle ? false : playback.canSkipNext}
+            canShuffle={idle ? false : playback.canShuffle}
+            canRepeat={idle ? false : playback.canRepeat}
+            shuffleEnabled={Boolean(playback?.shuffleEnabled)}
+            repeatMode={playback?.repeatMode || "off"}
             skipBusy={skipBusy}
+            shuffleBusy={shuffleBusy}
+            repeatBusy={repeatBusy}
             onPrevious={onPrevious}
             onToggle={onToggle}
             onNext={onNext}
+            onShuffle={onShuffle}
+            onRepeat={onRepeat}
           />
         </div>
         <div className={styles.playlists}>

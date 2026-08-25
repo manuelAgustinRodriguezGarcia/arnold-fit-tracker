@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartNoAxesColumnIncreasing, Play, Plus, Settings } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, Dumbbell, Plus, Settings } from "lucide-react";
 import { InstallPWA } from "@/components/install/InstallPWA";
 import { ActiveWorkoutCard } from "@/components/home/ActiveWorkoutCard";
 import { useArnold } from "@/hooks/useArnold";
@@ -23,31 +23,25 @@ export function HomeView({
       <div className={styles.actions}>
         <button type="button" className={styles.tile} onClick={onCreateRoutine}>
           <Plus size={32} />
-          <span className={styles.tileLabel}>
-            Crear
-            <br />
-            rutina
-          </span>
+          <span className={styles.tileLabel}>Rutina</span>
         </button>
+        <button type="button" className={styles.tile} onClick={onOpenSettings}>
+          <Settings size={32} />
+          <span className={styles.tileLabel}>Ajustes</span>
+        </button>
+      </div>
+
+      {!activeWorkout ? (
         <button
           type="button"
           className={`${styles.tile} ${styles.tilePrimary}`}
           onClick={onStartWorkout}
-          disabled={Boolean(activeWorkout) || routines.length === 0}
+          disabled={routines.length === 0}
         >
-          <Play size={32} />
-          <span className={styles.tileLabel}>
-            Comenzar
-            <br />
-            entrenamiento
-          </span>
+          <Dumbbell size={32} />
+          <span className={styles.tileLabel}>A ENTRENAR</span>
         </button>
-      </div>
-
-      <button type="button" className={styles.settings} onClick={onOpenSettings}>
-        <Settings size={20} />
-        Ajustes
-      </button>
+      ) : null}
 
       <WeeklySummary stats={stats} />
 

@@ -18,6 +18,8 @@ export function SpotifyController({ hidden = false, workoutOpen = false }) {
     error,
     notice,
     skipBusy,
+    shuffleBusy,
+    repeatBusy,
     startingPlaylistId,
     isOnline,
     setIsSeeking,
@@ -26,6 +28,8 @@ export function SpotifyController({ hidden = false, workoutOpen = false }) {
     pause,
     next,
     previous,
+    toggleShuffle,
+    cycleRepeatMode,
     seek,
     playPlaylist,
     expand,
@@ -77,6 +81,8 @@ export function SpotifyController({ hidden = false, workoutOpen = false }) {
         playlistsLoading={playlistsLoading}
         playlistsError={playlistsError}
         skipBusy={skipBusy}
+        shuffleBusy={shuffleBusy}
+        repeatBusy={repeatBusy}
         startingPlaylistId={startingPlaylistId}
         error={error}
         isOnline={isOnline}
@@ -85,6 +91,8 @@ export function SpotifyController({ hidden = false, workoutOpen = false }) {
         onPrevious={previous}
         onToggle={onToggle}
         onNext={next}
+        onShuffle={toggleShuffle}
+        onRepeat={cycleRepeatMode}
         onSeekStart={() => setIsSeeking(true)}
         onSeekInput={setDisplayedProgressMs}
         onSeekCommit={seek}

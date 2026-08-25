@@ -16,7 +16,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: 6px;
   min-height: 88px;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
@@ -30,9 +30,10 @@
 
 .tileLabel {
   min-width: 0;
-  font-size: 1.05rem;
+  font-size: clamp(1.05rem, 4.4vw, 1.28rem);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .tile svg {
@@ -67,29 +68,6 @@
   .tilePrimary:hover:not(:disabled) {
     background: var(--accent-hover);
   }
-}
-
-.settings {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--touch);
-  padding: 0 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--stone-taupe);
-  background: var(--ivory);
-  color: var(--charcoal);
-  font-weight: 600;
-}
-
-.settings svg {
-  color: var(--bronze-dark);
-}
-
-.settings:active {
-  transform: scale(0.98);
 }
 
 .activeCard {
@@ -227,10 +205,6 @@
   .view {
     animation: none;
   }
-}
-
-:global(html[data-theme="neon"]) .settings svg {
-  color: var(--stone-gray);
 }
 
 :global(html[data-theme="neon"]) .activeCard {
