@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Check } from "lucide-react";
+import { Check, CircleAlert } from "lucide-react";
 import styles from "./Toast.module.css";
 
 export function Toast({ notice, onClear }) {
@@ -20,7 +20,7 @@ export function Toast({ notice, onClear }) {
 
   return (
     <div className={styles.toast} role="status" aria-live="polite">
-      <Check size={16} />
+      {notice.tone === "error" ? <CircleAlert size={16} /> : <Check size={16} />}
       {notice.message}
     </div>
   );

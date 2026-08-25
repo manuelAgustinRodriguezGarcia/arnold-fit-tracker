@@ -1,7 +1,7 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-3));
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-3) + var(--spotify-pill-space));
   z-index: var(--z-toast);
   display: inline-flex;
   align-items: center;
@@ -16,7 +16,9 @@
   border: 1px solid var(--stone-taupe);
   color: var(--charcoal);
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
   animation: pop 220ms var(--ease-out);
 }
 

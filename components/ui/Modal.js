@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useVisualViewportFrame } from "@/hooks/useVisualViewportFrame";
 import styles from "./Modal.module.css";
 
 const EXIT_MS = 200;
@@ -98,6 +99,7 @@ export function Modal({
   }, []);
 
   useBodyScrollLock(visible);
+  const viewportFrame = useVisualViewportFrame(visible);
 
   useEffect(() => {
     if (!visible) {
@@ -120,8 +122,20 @@ export function Modal({
     return null;
   }
 
+  const overlayStyle = viewportFrame
+    ? {
+        top: viewportFrame.top,
+        height: viewportFrame.height,
+        bottom: "auto",
+      }
+    : undefined;
+  const keyboardOpen = Boolean(viewportFrame && viewportFrame.keyboardInset > 80);
+
   return (
-    <div className={`${styles.overlay} ${closing ? styles.closing : ""}`}>
+    <div
+      className={`${styles.overlay} ${closing ? styles.closing : ""}`}
+      style={overlayStyle}
+    >
       <button
         type="button"
         className={styles.backdrop}
@@ -129,7 +143,7 @@ export function Modal({
         onClick={requestClose}
       />
       <div
-        className={styles.sheet}
+        className={`${styles.sheet} ${keyboardOpen ? styles.sheetKeyboard : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "arnold-modal-title" : undefined}

@@ -39,7 +39,7 @@
     var(--space-4),
     calc((100vw - min(100vw, var(--max-width))) / 2 + var(--space-4))
   );
-  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4));
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4) + var(--spotify-pill-space));
   display: grid;
   justify-items: end;
   gap: var(--space-3);
@@ -89,7 +89,7 @@
   height: 56px;
   border-radius: 50%;
   background: var(--bronze-dark);
-  color: var(--ivory);
+  color: var(--on-accent);
   box-shadow: 0 8px 24px rgba(41, 40, 37, 0.2);
   transition: transform var(--duration-fast) var(--ease-out);
 }

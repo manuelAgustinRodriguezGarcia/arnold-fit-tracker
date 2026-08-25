@@ -59,7 +59,7 @@
   letter-spacing: 0.04em;
   line-height: 1.1;
   margin: 10px 0;
-  color: var(--charcoal);
+  color: var(--timer);
 }
 
 .exercises {
@@ -104,8 +104,8 @@
 }
 
 .done {
-  background: color-mix(in srgb, var(--bronze-aged) 16%, var(--ivory));
-  border-color: color-mix(in srgb, var(--bronze-aged) 42%, var(--stone-taupe));
+  background: color-mix(in srgb, var(--record) 16%, var(--ivory));
+  border-color: color-mix(in srgb, var(--record) 42%, var(--stone-taupe));
 }
 
 .exercise span {
@@ -128,6 +128,14 @@
   padding: 0 var(--space-4) var(--space-3);
 }
 
+:global(html[data-spotify-pill="on"]) .stretchWrap {
+  padding-bottom: calc(var(--space-3) + 76px);
+}
+
+:global(html[data-spotify-pill="on"]) .exercises {
+  padding-bottom: calc(var(--space-4) + 76px);
+}
+
 .stretchList {
   display: grid;
   gap: var(--space-3);
@@ -143,6 +151,12 @@
   border: 1px solid var(--stone-taupe);
   background: var(--ivory);
   text-align: left;
+}
+
+.stretchItem:disabled {
+  background: var(--stone-light);
+  color: var(--stone-gray);
+  cursor: not-allowed;
 }
 
 .stretchItem span {

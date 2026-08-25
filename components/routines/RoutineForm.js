@@ -13,6 +13,7 @@ import { ExerciseEditor } from "@/components/routines/ExerciseEditor";
 import { useArnold } from "@/hooks/useArnold";
 import { createId } from "@/lib/ids";
 import { findExerciseById, formatExerciseSummary, resolveRoutineExercises } from "@/lib/exercises";
+import { TEXT_FIELD } from "@/lib/inputAttrs";
 import styles from "./RoutineForm.module.css";
 
 gsap.registerPlugin(useGSAP, Flip);
@@ -118,10 +119,11 @@ export function RoutineForm({ routine, onClose }) {
           </Button>
         }
       >
-        <form id="routine-form" className={styles.form} onSubmit={onSubmit}>
+        <form id="routine-form" className={styles.form} autoComplete="off" onSubmit={onSubmit}>
           <label>
             Nombre
             <input
+              {...TEXT_FIELD}
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
@@ -132,6 +134,7 @@ export function RoutineForm({ routine, onClose }) {
           <label>
             Descripción
             <textarea
+              {...TEXT_FIELD}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
@@ -196,9 +199,13 @@ export function RoutineForm({ routine, onClose }) {
 
       <ExerciseSelector
         open={selectorOpen}
+        excludeIds={entries.map((entry) => entry.exerciseId).filter(Boolean)}
         onClose={() => setSelectorOpen(false)}
         onCreate={() => setCreatorOpen(true)}
         onSelect={(exercise) => {
+          if (entries.some((entry) => entry.exerciseId === exercise.id)) {
+            return;
+          }
           setEntries((current) => [
             ...current,
             { id: createId(), exerciseId: exercise.id },

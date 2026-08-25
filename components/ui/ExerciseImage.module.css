@@ -17,6 +17,6 @@
 
 .done {
   background: var(--bronze-dark);
-  color: var(--ivory);
+  color: var(--on-accent);
   border-color: var(--bronze-dark);
 }

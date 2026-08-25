@@ -215,28 +215,37 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         onClose={() => setStretchOpen(false)}
       >
         <div className={styles.stretchList}>
-          {STRETCH_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className={styles.stretchItem}
-              onClick={() => {
-                addExerciseToActiveWorkout(preset.id);
-                setStretchOpen(false);
-              }}
-            >
-              <strong>{preset.name}</strong>
-              <span>
-                {preset.defaultSets} × 1:30
-              </span>
-            </button>
-          ))}
+          {STRETCH_PRESETS.map((preset) => {
+            const added = exercises.some((item) => item.exerciseId === preset.id);
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={styles.stretchItem}
+                disabled={added}
+                onClick={() => {
+                  if (added) {
+                    return;
+                  }
+                  addExerciseToActiveWorkout(preset.id);
+                  setStretchOpen(false);
+                }}
+              >
+                <strong>{preset.name}</strong>
+                <span>{added ? "Ya está en la lista" : `${preset.defaultSets} × 1:30`}</span>
+              </button>
+            );
+          })}
         </div>
       </Modal>
 
       <ExerciseSelector
         open={Boolean(replacing)}
         title="Cambiar ejercicio"
+        excludeIds={exercises
+          .filter((item) => item.workoutExerciseId !== replacing)
+          .map((item) => item.exerciseId)
+          .filter(Boolean)}
         onClose={() => setReplacing(null)}
         onSelect={(exercise) => {
           if (replacing) {

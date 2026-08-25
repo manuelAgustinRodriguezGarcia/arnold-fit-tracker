@@ -54,17 +54,24 @@ export const viewport = {
   initialScale: 1,
   themeColor: "#F3F0E9",
   viewportFit: "cover",
+  interactiveWidget: "resizes-visual",
 };
 
-const THEME_BOOT = `(function(){try{var raw=localStorage.getItem("arnold:v1");var theme="classic";if(raw){var parsed=JSON.parse(raw);if(parsed&&parsed.settings&&parsed.settings.themePalette==="stone"){theme="stone";}}document.documentElement.setAttribute("data-theme",theme);}catch(e){document.documentElement.setAttribute("data-theme","classic");}})();`;
+const THEME_BOOT = `(function(){try{var raw=localStorage.getItem("arnold:v1");var theme="classic";var appearance="light";if(raw){var parsed=JSON.parse(raw);var s=parsed&&parsed.settings;if(s){var p=s.themePalette;if(p==="stone"){theme="stone";}else if(p==="neon"){theme="neon";}if(s.appearance==="dark"){appearance="dark";}}}document.documentElement.setAttribute("data-theme",theme);document.documentElement.setAttribute("data-appearance",appearance);var color="#F3F0E9";if(theme==="neon"){color="#111113";}else if(appearance==="dark"){color=theme==="stone"?"#151515":"#171512";}else if(theme==="stone"){color="#F4F4F1";}var meta=document.querySelector('meta[name="theme-color"]');if(meta){meta.setAttribute("content",color);}}catch(e){document.documentElement.setAttribute("data-theme","classic");document.documentElement.setAttribute("data-appearance","light");}})();`;
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es-AR" className={sourceSans.variable} suppressHydrationWarning>
+    <html
+      lang="es-AR"
+      className={sourceSans.variable}
+      data-theme="classic"
+      data-appearance="light"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AppClient>{children}</AppClient>
       </body>
     </html>

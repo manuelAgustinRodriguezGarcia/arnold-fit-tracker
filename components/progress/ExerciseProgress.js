@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useArnold } from "@/hooks/useArnold";
 import { EXERCISE_TYPE, formatSeconds, normalizeName } from "@/lib/exercises";
+import { SEARCH_FIELD } from "@/lib/inputAttrs";
 import { getExerciseHistory, getExerciseProgressSummary } from "@/lib/exerciseStats";
 import styles from "./ExerciseProgress.module.css";
 
@@ -58,6 +59,7 @@ export function ExerciseProgress({ sessions }) {
         <Search size={18} aria-hidden="true" />
         <span className="sr-only">Buscar ejercicio</span>
         <input
+          {...SEARCH_FIELD}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar ejercicio"
@@ -100,14 +102,14 @@ export function ExerciseProgress({ sessions }) {
                   <span>Duración total</span>
                 </article>
                 <article>
-                  <strong>{formatSeconds(summary.bestDuration)}</strong>
+                  <strong className={styles.record}>{formatSeconds(summary.bestDuration)}</strong>
                   <span>Mejor duración</span>
                 </article>
               </>
             ) : (
               <>
                 <article>
-                  <strong>{summary.maxWeight ?? "—"}</strong>
+                  <strong className={styles.record}>{summary.maxWeight ?? "—"}</strong>
                   <span>Máximo peso</span>
                 </article>
                 <article>

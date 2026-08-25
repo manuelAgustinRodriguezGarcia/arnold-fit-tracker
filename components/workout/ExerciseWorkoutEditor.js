@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
 import { EXERCISE_TYPE, parseRepsInput } from "@/lib/exercises";
+import { NUMBER_FIELD } from "@/lib/inputAttrs";
 import { getMinSetCount } from "@/lib/workoutSets";
 import styles from "./ExerciseWorkoutEditor.module.css";
 
@@ -131,6 +132,7 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
         <label>
           Cantidad de series
           <input
+            {...NUMBER_FIELD}
             type="number"
             inputMode="numeric"
             min={minSets}
@@ -146,6 +148,7 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
               <label>
                 Tiempo (s)
                 <input
+                  {...NUMBER_FIELD}
                   inputMode="numeric"
                   min="1"
                   value={set.durationSeconds}
@@ -159,6 +162,7 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
                 <label>
                   Repeticiones
                   <input
+                    {...NUMBER_FIELD}
                     inputMode="numeric"
                     min="1"
                     value={set.reps}
@@ -169,6 +173,7 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
                   Peso
                   <div className={styles.suffixField}>
                     <input
+                      {...NUMBER_FIELD}
                       inputMode="decimal"
                       min="0"
                       step="0.5"

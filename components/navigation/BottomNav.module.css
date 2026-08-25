@@ -11,7 +11,7 @@
   min-height: calc(var(--nav-height) + env(safe-area-inset-bottom));
   padding: 12px 8px calc(10px + env(safe-area-inset-bottom));
   background: var(--ivory);
-  border-top: 1px solid var(--stone-light);
+  border-top: 1px solid var(--nav-border);
 }
 
 .item {
@@ -21,8 +21,8 @@
   gap: 4px;
   min-height: var(--touch);
   padding: 8px 0 6px;
-  background: var(--stone-light);
-  color: var(--bronze-dark);
+  background: var(--nav-item-bg);
+  color: var(--nav-item-color);
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 14px;
@@ -43,8 +43,8 @@
 }
 
 .active {
-  background: var(--bronze-dark);
-  color: var(--ivory);
+  background: var(--nav-item-active-bg);
+  color: var(--nav-item-active-color);
   font-weight: 700;
 }
 

@@ -12,7 +12,7 @@
   padding: 0;
   border-radius: 999px;
   background: var(--bronze-dark);
-  color: var(--ivory);
+  color: var(--on-accent);
 }
 
 .adjust {
@@ -24,11 +24,11 @@
 }
 
 .minus {
-  border-right: 1px solid rgba(255, 255, 255, 0.28);
+  border-right: 1px solid color-mix(in srgb, var(--on-accent) 28%, transparent);
 }
 
 .plus {
-  border-left: 1px solid rgba(255, 255, 255, 0.28);
+  border-left: 1px solid color-mix(in srgb, var(--on-accent) 28%, transparent);
 }
 
 .skip {
@@ -74,4 +74,22 @@
   width: 100%;
   color: var(--stone-gray);
   font-weight: 600;
+}
+
+:global(html[data-theme="neon"]) .pill {
+  background: var(--stone-light);
+  color: var(--charcoal);
+  border: 1px solid var(--stone-taupe);
+}
+
+:global(html[data-theme="neon"]) .minus {
+  border-right-color: var(--stone-taupe);
+}
+
+:global(html[data-theme="neon"]) .plus {
+  border-left-color: var(--stone-taupe);
+}
+
+:global(html[data-theme="neon"]) .time strong {
+  color: var(--timer);
 }

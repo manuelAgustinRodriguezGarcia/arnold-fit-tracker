@@ -16,8 +16,10 @@ import { ProgressView } from "@/components/progress/ProgressView";
 import { SessionDetail } from "@/components/progress/SessionDetail";
 import { WorkoutScreen } from "@/components/workout/WorkoutScreen";
 import { SettingsModal } from "@/components/settings/SettingsModal";
+import { SpotifyController } from "@/components/spotify/SpotifyController";
 import { useArnold } from "@/hooks/useArnold";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useSpotify } from "@/context/SpotifyContext";
 import { NAV_VIEWS, pathToView, viewToPath } from "@/lib/navigation";
 import styles from "./AppShell.module.css";
 
@@ -35,6 +37,7 @@ export function AppShell() {
     notice,
     clearNotice,
   } = useArnold();
+  const { isExpanded: spotifyExpanded } = useSpotify();
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [formRoutine, setFormRoutine] = useState(undefined);
   const [formOpen, setFormOpen] = useState(false);
@@ -58,7 +61,8 @@ export function AppShell() {
     Boolean(exerciseToDelete) ||
     Boolean(sessionToDelete) ||
     activeConflict ||
-    settingsOpen;
+    settingsOpen ||
+    spotifyExpanded;
 
   const navigateTo = useCallback(
     (nextView) => {
@@ -259,6 +263,22 @@ export function AppShell() {
         onClose={() => setActiveConflict(false)}
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {isReady ? (
+        <SpotifyController
+          hidden={
+            formOpen ||
+            exerciseFormOpen ||
+            pickerOpen ||
+            Boolean(sessionDetail) ||
+            Boolean(deleteTarget) ||
+            Boolean(exerciseToDelete) ||
+            Boolean(sessionToDelete) ||
+            activeConflict ||
+            settingsOpen
+          }
+          workoutOpen={workoutOpen}
+        />
+      ) : null}
       <Toast notice={notice} onClear={clearNotice} />
     </>
   );

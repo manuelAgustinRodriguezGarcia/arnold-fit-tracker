@@ -1,9 +1,18 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-height: var(--touch);
   padding: 0 12px;
+  margin: 0 0 2px;
   border-radius: 12px;
   border: 1px solid var(--stone-taupe);
   background: var(--ivory);
@@ -61,6 +70,12 @@
   font-size: 0.82rem;
 }
 
-.item:active {
+.item:disabled {
+  background: var(--stone-light);
+  color: var(--stone-gray);
+  cursor: not-allowed;
+}
+
+.item:active:not(:disabled) {
   transform: scale(0.99);
 }

@@ -1,9 +1,13 @@
-const CACHE_NAME = "arnold-cache-v6";
+const CACHE_NAME = "arnold-cache-v7";
 const SHELL_URLS = [
   "/",
   "/rutinas",
   "/progreso",
   "/logo-arnold.svg",
+  "/logo-classic-dark-04.svg",
+  "/logo-stone-light-04.svg",
+  "/logo-stone-dark-04.svg",
+  "/logo-neon-dark-04.svg",
   "/logo-square-arnold.svg",
   "/logo-square-arnold-192.png",
   "/logo-square-arnold-512.png",
@@ -58,6 +62,10 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
+    if (url.pathname.startsWith("/spotify/callback")) {
+      event.respondWith(fetch(request));
+      return;
+    }
     event.respondWith(networkFirst(request));
     return;
   }

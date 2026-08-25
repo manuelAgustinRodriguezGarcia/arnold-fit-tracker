@@ -38,18 +38,18 @@
 
 .primary {
   background: var(--bronze-dark);
-  color: var(--ivory);
+  color: var(--on-accent);
 }
 
 .secondary {
-  background: transparent;
+  background: var(--button-secondary-bg);
   color: var(--charcoal);
   border: 1px solid var(--stone-taupe);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .primary:hover:not(:disabled) {
-    background: var(--bronze-aged);
+    background: var(--accent-hover);
   }
 
   .secondary:hover:not(:disabled) {

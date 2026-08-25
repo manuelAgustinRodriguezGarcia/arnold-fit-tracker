@@ -54,3 +54,7 @@
   top: calc(env(safe-area-inset-top) + 12px);
   right: var(--space-4);
 }
+
+:global(html[data-theme="neon"]) .tagline {
+  color: var(--stone-gray);
+}

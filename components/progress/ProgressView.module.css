@@ -1,6 +1,7 @@
 .view {
   display: grid;
   gap: var(--space-4);
+  padding-bottom: var(--spotify-pill-space);
   animation: fadeView 220ms var(--ease-out);
 }
 

@@ -75,6 +75,10 @@
   background: var(--bronze-dark);
 }
 
+:global(html[data-theme="neon"]) .bar {
+  background: var(--stone-light);
+}
+
 .barCol span {
   font-size: 0.72rem;
   font-weight: 700;

@@ -22,7 +22,7 @@ export function HomeView({
 
       <div className={styles.actions}>
         <button type="button" className={styles.tile} onClick={onCreateRoutine}>
-          <Plus size={40} />
+          <Plus size={32} />
           <span className={styles.tileLabel}>
             Crear
             <br />
@@ -35,7 +35,7 @@ export function HomeView({
           onClick={onStartWorkout}
           disabled={Boolean(activeWorkout) || routines.length === 0}
         >
-          <Play size={40} />
+          <Play size={32} />
           <span className={styles.tileLabel}>
             Comenzar
             <br />

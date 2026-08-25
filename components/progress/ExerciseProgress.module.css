@@ -64,6 +64,10 @@
   color: var(--bronze-aged);
 }
 
+.stats .record {
+  color: var(--record);
+}
+
 .stats span {
   color: var(--stone-gray);
   font-size: 0.8rem;

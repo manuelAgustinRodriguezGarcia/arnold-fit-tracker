@@ -1,0 +1,33 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.md .side,
+.md .main {
+  min-width: 40px;
+  min-height: 44px;
+}
+
+.lg {
+  gap: var(--space-3);
+}
+
+.lg .main {
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 50%;
+  background: var(--bronze-dark);
+  color: var(--on-accent);
+}
+
+.lg .main:active:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.lg .side {
+  min-width: 52px;
+  min-height: 52px;
+}

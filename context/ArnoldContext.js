@@ -9,7 +9,7 @@ import {
 } from "@/lib/arnoldStore";
 import { createId } from "@/lib/ids";
 import { createExerciseRecord, findExerciseById } from "@/lib/exercises";
-import { normalizeThemePalette } from "@/lib/themes";
+import { applyThemeAttributes, normalizeAppearance, normalizeThemePalette } from "@/lib/themes";
 import {
   adjustRestTimer,
   applyResizeSets,
@@ -66,9 +66,8 @@ export function ArnoldProvider({ children }) {
   const [notice, setNotice] = useState(null);
 
   useEffect(() => {
-    const theme = state.settings?.themePalette === "stone" ? "stone" : "classic";
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [state.settings?.themePalette]);
+    applyThemeAttributes(state.settings?.themePalette, state.settings?.appearance);
+  }, [state.settings?.themePalette, state.settings?.appearance]);
 
   const showNotice = useCallback((message) => {
     setNotice({ id: createId(), message });
@@ -315,22 +314,23 @@ export function ArnoldProvider({ children }) {
   }, []);
 
   const updateSettings = useCallback((patch) => {
-    if (patch?.themePalette) {
-      document.documentElement.setAttribute(
-        "data-theme",
-        normalizeThemePalette(patch.themePalette),
-      );
-    }
-    updateArnoldStore((current) => ({
-      ...current,
-      settings: {
+    updateArnoldStore((current) => {
+      const nextSettings = {
         ...(current.settings || {}),
         ...patch,
         ...(patch.themePalette
           ? { themePalette: normalizeThemePalette(patch.themePalette) }
           : {}),
-      },
-    }));
+        ...(Object.prototype.hasOwnProperty.call(patch || {}, "appearance")
+          ? { appearance: normalizeAppearance(patch.appearance) }
+          : {}),
+      };
+      applyThemeAttributes(nextSettings.themePalette, nextSettings.appearance);
+      return {
+        ...current,
+        settings: nextSettings,
+      };
+    });
   }, []);
 
   const saveWorkoutExercise = useCallback((workoutExerciseId, nextSets) => {

@@ -1,0 +1,10 @@
+.screen {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-6);
+  background: var(--marble);
+  color: var(--charcoal);
+  text-align: center;
+  font-weight: 600;
+}

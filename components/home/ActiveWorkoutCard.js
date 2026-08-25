@@ -1,7 +1,6 @@
 "use client";
 
 import { Dumbbell } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useWorkoutTimer } from "@/hooks/useWorkoutTimer";
 import { getCurrentSetProgress, WORKOUT_STATUS } from "@/lib/workout";
@@ -12,7 +11,7 @@ export function ActiveWorkoutCard({ workout, onContinue }) {
   const progress = getCurrentSetProgress(workout);
 
   return (
-    <Card className={styles.activeCard}>
+    <Card as="button" className={styles.activeCard} onClick={onContinue}>
       <p className={styles.kicker}>Entrenamiento en curso</p>
       <h2>{workout.routineName}</h2>
       {progress ? (
@@ -33,9 +32,10 @@ export function ActiveWorkoutCard({ workout, onContinue }) {
             ? "Último hecho"
             : "En curso"}
       </p>
-      <Button size="lg" icon={<Dumbbell size={18} />} onClick={onContinue}>
+      <span className={styles.continue}>
+        <Dumbbell size={18} />
         Continuar
-      </Button>
+      </span>
     </Card>
   );
 }

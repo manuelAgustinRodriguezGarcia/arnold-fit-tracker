@@ -25,7 +25,7 @@
 .banner {
   padding: 12px var(--space-4);
   background: var(--bronze-dark);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .banner h3 {
@@ -33,18 +33,18 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.4em;
-  color: #fff;
+  color: var(--on-accent);
   font-size: 1.05rem;
 }
 
 .metaSep {
-  color: rgba(255, 255, 255, 0.42);
+  color: color-mix(in srgb, var(--on-accent) 42%, transparent);
   font-family: var(--font-sans);
   font-weight: 400;
 }
 
 .when {
-  color: rgba(255, 255, 255, 0.88);
+  color: color-mix(in srgb, var(--on-accent) 88%, transparent);
   font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 600;
@@ -152,4 +152,22 @@
     outline: 2px solid var(--bronze-dark);
     outline-offset: -2px;
   }
+}
+
+:global(html[data-theme="neon"]) .banner {
+  background: var(--accent-tertiary);
+  color: var(--charcoal);
+  border-bottom: 0;
+}
+
+:global(html[data-theme="neon"]) .banner h3 {
+  color: var(--charcoal);
+}
+
+:global(html[data-theme="neon"]) .metaSep {
+  color: color-mix(in srgb, var(--charcoal) 42%, transparent);
+}
+
+:global(html[data-theme="neon"]) .when {
+  color: color-mix(in srgb, var(--charcoal) 82%, transparent);
 }

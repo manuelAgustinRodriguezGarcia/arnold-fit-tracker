@@ -10,6 +10,7 @@ import {
   EXERCISE_TYPE,
   splitSeconds,
 } from "@/lib/exercises";
+import { NUMBER_FIELD, TEXT_FIELD } from "@/lib/inputAttrs";
 import styles from "./ExerciseEditor.module.css";
 
 function valuesFromExercise(exercise) {
@@ -97,10 +98,11 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
         </Button>
       }
     >
-      <form id="exercise-form" className={styles.form} onSubmit={onSubmit}>
+      <form id="exercise-form" className={styles.form} autoComplete="off" onSubmit={onSubmit}>
         <label>
           Nombre
           <input
+            {...TEXT_FIELD}
             value={values.name}
             onChange={(event) => update("name", event.target.value)}
             required
@@ -139,6 +141,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               <label>
                 Series
                 <input
+                  {...NUMBER_FIELD}
                   type="number"
                   inputMode="numeric"
                   min="1"
@@ -149,6 +152,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               <label>
                 Repeticiones
                 <input
+                  {...NUMBER_FIELD}
                   type="number"
                   inputMode="numeric"
                   min="1"
@@ -160,6 +164,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
                 Descanso
                 <div className={styles.suffixField}>
                   <input
+                    {...NUMBER_FIELD}
                     type="number"
                     inputMode="numeric"
                     min="0"
@@ -174,6 +179,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               Peso inicial
               <div className={styles.suffixField}>
                 <input
+                  {...NUMBER_FIELD}
                   inputMode="decimal"
                   min="0"
                   step="0.5"
@@ -191,6 +197,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               <label>
                 Series
                 <input
+                  {...NUMBER_FIELD}
                   type="number"
                   inputMode="numeric"
                   min="1"
@@ -202,6 +209,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
                 Descanso entre series
                 <div className={styles.suffixField}>
                   <input
+                    {...NUMBER_FIELD}
                     type="number"
                     inputMode="numeric"
                     min="0"
@@ -216,6 +224,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               <label>
                 Minutos
                 <input
+                  {...NUMBER_FIELD}
                   type="number"
                   inputMode="numeric"
                   min="0"
@@ -226,6 +235,7 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
               <label>
                 Segundos
                 <input
+                  {...NUMBER_FIELD}
                   type="number"
                   inputMode="numeric"
                   min="0"

@@ -9,7 +9,10 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["components/ui/Modal.js"],
+    files: [
+      "components/ui/Modal.js",
+      "components/spotify/SpotifyPlayerSheet.js",
+    ],
     rules: {
       "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",

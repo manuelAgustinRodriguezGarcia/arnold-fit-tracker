@@ -1,0 +1,55 @@
+.wordmark {
+  display: block;
+  line-height: 0;
+  color: var(--logo-color);
+}
+
+.wordmark img {
+  width: auto;
+  height: 100%;
+  max-width: min(360px, 82vw);
+}
+
+.wordmark .classicLight,
+.wordmark .classicDark,
+.wordmark .stoneLight,
+.wordmark .stoneDark,
+.wordmark .neon {
+  display: none;
+}
+
+.wordmark .classicLight {
+  display: block;
+}
+
+:global(html[data-theme="classic"][data-appearance="dark"]) .wordmark .classicLight {
+  display: none;
+}
+
+:global(html[data-theme="classic"][data-appearance="dark"]) .wordmark .classicDark {
+  display: block;
+}
+
+:global(html[data-theme="stone"]) .wordmark .classicLight,
+:global(html[data-theme="stone"]) .wordmark .classicDark {
+  display: none;
+}
+
+:global(html[data-theme="stone"]:not([data-appearance="dark"])) .wordmark .stoneLight {
+  display: block;
+}
+
+:global(html[data-theme="stone"][data-appearance="dark"]) .wordmark .stoneDark {
+  display: block;
+}
+
+:global(html[data-theme="neon"]) .wordmark .classicLight,
+:global(html[data-theme="neon"]) .wordmark .classicDark,
+:global(html[data-theme="neon"]) .wordmark .stoneLight,
+:global(html[data-theme="neon"]) .wordmark .stoneDark {
+  display: none;
+}
+
+:global(html[data-theme="neon"]) .wordmark .neon {
+  display: block;
+}

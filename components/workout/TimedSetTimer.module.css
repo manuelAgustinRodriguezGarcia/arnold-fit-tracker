@@ -21,4 +21,5 @@
   font-size: 1.8rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+  color: var(--timer);
 }
