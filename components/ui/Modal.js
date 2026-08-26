@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -131,7 +132,7 @@ export function Modal({
     : undefined;
   const keyboardOpen = Boolean(viewportFrame && viewportFrame.keyboardInset > 80);
 
-  return (
+  const node = (
     <div
       className={`${styles.overlay} ${closing ? styles.closing : ""}`}
       style={overlayStyle}
@@ -175,4 +176,10 @@ export function Modal({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") {
+    return node;
+  }
+
+  return createPortal(node, document.body);
 }
