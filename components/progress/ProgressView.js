@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/Button";
 import { ActivityChart } from "@/components/progress/ActivityChart";
 import { ExerciseProgress } from "@/components/progress/ExerciseProgress";
+import { ProgressCalendar } from "@/components/progress/ProgressCalendar";
 import { SessionCard } from "@/components/progress/SessionCard";
 import { TimeByRoutineChart } from "@/components/progress/TimeByRoutineChart";
 import { useArnold } from "@/hooks/useArnold";
@@ -23,6 +24,7 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
   const { sessions } = useArnold();
   const [period, setPeriod] = useState("week");
   const [offset, setOffset] = useState(0);
+  const [calendarExpanded, setCalendarExpanded] = useState(false);
 
   const range = getPeriodRange(period, offset);
   const periodSessions = useMemo(
@@ -39,8 +41,15 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
 
   return (
     <section
-      className={`${styles.view} ${ordered.length === 0 ? styles.centered : ""}`}
+      className={`${styles.view} ${ordered.length === 0 ? styles.centered : ""} ${
+        calendarExpanded ? styles.viewOpen : ""
+      }`}
     >
+      <ProgressCalendar
+        sessions={sessions}
+        expanded={calendarExpanded}
+        onExpandedChange={setCalendarExpanded}
+      />
       {ordered.length === 0 ? (
         <EmptyState
           icon={<ChartNoAxesColumnIncreasing size={28} />}
