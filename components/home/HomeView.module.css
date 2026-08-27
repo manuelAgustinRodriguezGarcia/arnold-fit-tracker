@@ -165,29 +165,58 @@
   font-size: 1rem;
 }
 
-.stats {
+.bars {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
 }
 
-.stats article {
+.barCol {
   display: grid;
-  gap: 4px;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
-.stats strong {
-  font-family: var(--font-sans);
-  font-size: 1.2rem;
-  font-weight: 400;
+.barTrack {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 92px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bronze-aged) 32%, var(--ivory));
+  overflow: hidden;
+}
+
+.barFill {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 6px 3px 4px;
+  border-radius: inherit;
+  background: var(--bronze-dark);
+}
+
+.barFill:not(:empty) {
+  min-height: 28px;
+}
+
+.barTime {
+  color: var(--on-accent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  color: var(--bronze-aged);
 }
 
-.stats span {
+.barLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--stone-gray);
-  font-size: 0.8rem;
 }
 
 @keyframes fadeView {

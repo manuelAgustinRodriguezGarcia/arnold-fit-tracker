@@ -4,8 +4,16 @@ import { ChartNoAxesColumnIncreasing, Dumbbell, Plus, Settings } from "lucide-re
 import { InstallPWA } from "@/components/install/InstallPWA";
 import { ActiveWorkoutCard } from "@/components/home/ActiveWorkoutCard";
 import { useArnold } from "@/hooks/useArnold";
-import { formatDurationHuman, getWeeklyStats } from "@/lib/dates";
+import {
+  formatDurationHuman,
+  getPeriodRange,
+  getWeekdayName,
+  getWeekdayShortLabels,
+} from "@/lib/dates";
+import { getActivityByDay, getPeriodSessions } from "@/lib/exerciseStats";
 import styles from "./HomeView.module.css";
+
+const WEEKDAY_LABELS = getWeekdayShortLabels();
 
 export function HomeView({
   onCreateRoutine,
@@ -14,7 +22,6 @@ export function HomeView({
   onOpenSettings,
 }) {
   const { routines, sessions, activeWorkout } = useArnold();
-  const stats = getWeeklyStats(sessions);
 
   return (
     <section className={styles.view}>
@@ -43,7 +50,7 @@ export function HomeView({
         </button>
       ) : null}
 
-      <WeeklySummary stats={stats} />
+      <WeeklySummary sessions={sessions} />
 
       {activeWorkout ? (
         <ActiveWorkoutCard
@@ -55,26 +62,46 @@ export function HomeView({
   );
 }
 
-function WeeklySummary({ stats }) {
+function WeeklySummary({ sessions }) {
+  const range = getPeriodRange("week", 0);
+  const days = getActivityByDay(getPeriodSessions(sessions, "week", 0), range);
+  const max = Math.max(0, ...days.map((day) => day.durationSeconds));
+
   return (
-    <section className={styles.week}>
+    <section className={styles.week} aria-label="Actividad de esta semana">
       <div className={styles.weekHeader}>
         <ChartNoAxesColumnIncreasing size={18} />
         <h2>Esta semana</h2>
       </div>
-      <div className={styles.stats}>
-        <article>
-          <strong>{stats.exercises}</strong>
-          <span>Ejercicios</span>
-        </article>
-        <article>
-          <strong>{formatDurationHuman(stats.durationSeconds)}</strong>
-          <span>Tiempo</span>
-        </article>
-        <article>
-          <strong>{stats.trainings}</strong>
-          <span>Entrenamientos</span>
-        </article>
+      <div className={styles.bars} role="list">
+        {days.map((day, index) => {
+          const trained = day.durationSeconds > 0;
+          const height = max && trained ? Math.max(8, (day.durationSeconds / max) * 100) : 0;
+          const name = getWeekdayName(day.date);
+          return (
+            <div
+              key={day.date.getTime()}
+              className={styles.barCol}
+              role="listitem"
+              aria-label={
+                trained
+                  ? `${name}, ${formatDurationHuman(day.durationSeconds)}`
+                  : `${name}, sin entrenamiento`
+              }
+            >
+              <div className={styles.barTrack}>
+                <div className={styles.barFill} style={{ height: `${height}%` }}>
+                  {trained ? (
+                    <span className={styles.barTime}>{formatDurationHuman(day.durationSeconds)}</span>
+                  ) : null}
+                </div>
+              </div>
+              <span className={styles.barLabel} aria-hidden="true">
+                {WEEKDAY_LABELS[index]}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
