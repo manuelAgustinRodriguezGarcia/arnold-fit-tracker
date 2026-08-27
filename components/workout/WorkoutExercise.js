@@ -6,6 +6,7 @@ import { IconButton } from "@/components/ui/Button";
 import { SetButtons } from "@/components/workout/SetButtons";
 import { TimedSetTimer } from "@/components/workout/TimedSetTimer";
 import { EXERCISE_TYPE, formatExerciseSummary } from "@/lib/exercises";
+import { isStretchExercise } from "@/lib/stretchPresets";
 import { isExerciseComplete } from "@/lib/workoutSets";
 import styles from "./WorkoutExercise.module.css";
 
@@ -52,7 +53,12 @@ export function WorkoutExercise({
       {timedTimer &&
       timedTimer.workoutExerciseId === exercise.workoutExerciseId &&
       exercise.type === EXERCISE_TYPE.TIMED ? (
-        <TimedSetTimer timedTimer={timedTimer} />
+        <TimedSetTimer
+          timedTimer={timedTimer}
+          label={
+            isStretchExercise(exercise) ? "Elongación en curso" : "Serie en curso"
+          }
+        />
       ) : null}
     </article>
   );

@@ -5,7 +5,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { formatCountdown } from "@/lib/dates";
 import styles from "./TimedSetTimer.module.css";
 
-export function TimedSetTimer({ timedTimer }) {
+export function TimedSetTimer({ timedTimer, label = "Serie en curso" }) {
   const { finishTimedSet } = useArnold();
   const remainingMs = useCountdown(timedTimer?.endsAt, () => {
     if (timedTimer) {
@@ -19,7 +19,7 @@ export function TimedSetTimer({ timedTimer }) {
 
   return (
     <div className={styles.timer} aria-live="polite">
-      <span>Serie en curso</span>
+      <span>{label}</span>
       <strong>{formatCountdown(remainingMs)}</strong>
     </div>
   );
