@@ -15,6 +15,22 @@ import styles from "./HomeView.module.css";
 
 const WEEKDAY_LABELS = getWeekdayShortLabels();
 
+function barDurationParts(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const parts = [];
+  if (hours > 0) {
+    parts.push({ unit: "h", value: String(hours) });
+  }
+  if (minutes > 0) {
+    parts.push({ unit: "min", value: String(minutes) });
+  } else if (hours === 0) {
+    parts.push({ unit: "s", value: String(total) });
+  }
+  return parts;
+}
+
 export function HomeView({
   onCreateRoutine,
   onStartWorkout,
@@ -92,7 +108,14 @@ function WeeklySummary({ sessions }) {
               <div className={styles.barTrack}>
                 <div className={styles.barFill} style={{ height: `${height}%` }}>
                   {trained ? (
-                    <span className={styles.barTime}>{formatDurationHuman(day.durationSeconds)}</span>
+                    <span className={styles.barTime} aria-hidden="true">
+                      {barDurationParts(day.durationSeconds).map((part) => (
+                        <span key={part.unit} className={styles.barTimePart}>
+                          <span className={styles.barNum}>{part.value}</span>
+                          {part.unit}
+                        </span>
+                      ))}
+                    </span>
                   ) : null}
                 </div>
               </div>

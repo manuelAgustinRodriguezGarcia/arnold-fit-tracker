@@ -33,6 +33,21 @@ function sessionDayKey(session) {
   return localDateKey(session.endedAt || session.startedAt);
 }
 
+function sessionRoutineName(session) {
+  return session?.routineName || session?.routineSnapshot?.name || "Entrenamiento";
+}
+
+function uniqueRoutineNames(daySessions) {
+  const names = [];
+  for (const session of daySessions) {
+    const name = sessionRoutineName(session);
+    if (!names.includes(name)) {
+      names.push(name);
+    }
+  }
+  return names;
+}
+
 export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
   const todayKey = localDateKey(new Date());
   const [year, setYear] = useState(() => new Date().getFullYear());
@@ -50,14 +65,26 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     }
     return range;
   }, [sessions, year]);
-  const counts = useMemo(() => {
+  const sessionsByDay = useMemo(() => {
     const map = new Map();
     for (const session of sessions || []) {
       const key = sessionDayKey(session);
-      map.set(key, (map.get(key) || 0) + 1);
+      const list = map.get(key);
+      if (list) {
+        list.push(session);
+      } else {
+        map.set(key, [session]);
+      }
     }
     return map;
   }, [sessions]);
+  const counts = useMemo(() => {
+    const map = new Map();
+    for (const [key, list] of sessionsByDay) {
+      map.set(key, list.length);
+    }
+    return map;
+  }, [sessionsByDay]);
 
   const monthLabel = formatMonthYear(year, month);
 
@@ -145,7 +172,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     toggleExpanded(true);
   }
 
-  const selectedCount = counts.get(selectedKey) || 0;
+  const selectedNames = uniqueRoutineNames(sessionsByDay.get(selectedKey) || []);
   const selectedDate = selectedKey
     ? new Date(`${selectedKey}T12:00:00`)
     : null;
@@ -153,7 +180,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     ? `${selectedDate.toLocaleDateString(DATE_LOCALE, {
         day: "numeric",
         month: "long",
-      })}${selectedCount ? ` · ${selectedCount} ${selectedCount === 1 ? "entrenamiento" : "entrenamientos"}` : ""}`
+      })}${selectedNames.length ? ` · ${selectedNames.join(" · ")}` : ""}`
     : "";
 
   return (
@@ -175,6 +202,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
           <div className={styles.grid} role="grid" aria-label={monthLabel}>
             {cells.map((cell) => {
               const count = counts.get(cell.key) || 0;
+              const names = uniqueRoutineNames(sessionsByDay.get(cell.key) || []);
               const selected = cell.key === selectedKey;
               const today = cell.key === todayKey;
               return (
@@ -188,9 +216,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
                   aria-current={today ? "date" : undefined}
                   aria-selected={selected}
                   aria-label={`${cell.day} de ${MONTH_NAMES[cell.month]}${
-                    count
-                      ? `, ${count} ${count === 1 ? "entrenamiento" : "entrenamientos"}`
-                      : ""
+                    names.length ? `, ${names.join(", ")}` : ""
                   }`}
                   onClick={(event) => {
                     event.stopPropagation();

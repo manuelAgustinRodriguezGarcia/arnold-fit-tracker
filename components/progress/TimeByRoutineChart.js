@@ -12,7 +12,7 @@ export function TimeByRoutineChart({ items }) {
       ) : (
         items.map((item) => (
           <div key={item.id} className={styles.row}>
-            <span>{item.name}</span>
+            <span className={styles.name}>{item.name}</span>
             <strong>{formatDurationShort(item.durationSeconds)}</strong>
             <div className={styles.track}>
               <div

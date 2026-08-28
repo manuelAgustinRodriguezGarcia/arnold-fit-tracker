@@ -174,7 +174,10 @@
   color: var(--stone-gray);
   font-size: 0.9rem;
   font-weight: 600;
+  line-height: 1.35;
   text-align: center;
+  padding-inline: var(--space-2);
+  text-wrap: pretty;
 }
 
 .picker {

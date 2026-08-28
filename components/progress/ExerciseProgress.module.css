@@ -11,12 +11,16 @@
   font-size: 1rem;
 }
 
+.picker {
+  position: relative;
+}
+
 .search {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-height: var(--touch);
-  padding: 0 12px;
+  padding: 0 8px 0 12px;
   border-radius: 12px;
   border: 1px solid var(--stone-taupe);
   background: var(--marble);
@@ -29,22 +33,58 @@
   min-height: var(--touch);
 }
 
-.list {
-  display: grid;
-  gap: 6px;
-  list-style: none;
+.search input:focus-visible {
+  outline: none;
 }
 
-.item {
-  min-height: var(--touch);
-  padding: 0 12px;
+.chevron {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--touch);
+  height: var(--touch);
+  color: var(--stone-gray);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto;
+  z-index: 4;
+  max-height: min(50vh, 320px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  list-style: none;
   border-radius: 12px;
+  border: 1px solid var(--stone-taupe);
+  background: var(--ivory);
+  box-shadow: var(--shadow-card);
+}
+
+.menuEmpty {
+  padding: 12px;
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 10px 12px;
+  border-radius: 10px;
   text-align: left;
   font-weight: 600;
 }
 
-.item[aria-pressed="true"],
-.item:active {
+.option[aria-selected="true"],
+.optionActive,
+.option:active {
   background: var(--stone-light);
 }
 
