@@ -55,6 +55,8 @@ export function ExerciseProgress({ sessions }) {
     return sorted.filter((exercise) => normalizeName(exercise.name).includes(key));
   }, [query, selected, sorted]);
 
+  const safeIndex = filtered.length === 0 ? 0 : Math.min(activeIndex, filtered.length - 1);
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -69,15 +71,6 @@ export function ExerciseProgress({ sessions }) {
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
-
-  useEffect(() => {
-    setActiveIndex((current) => {
-      if (filtered.length === 0) {
-        return 0;
-      }
-      return Math.min(current, filtered.length - 1);
-    });
-  }, [filtered]);
 
   function pickExercise(exercise) {
     setSelectedId(exercise.id);
@@ -110,7 +103,7 @@ export function ExerciseProgress({ sessions }) {
     }
     if (event.key === "Enter" && open) {
       event.preventDefault();
-      const exercise = filtered[activeIndex];
+      const exercise = filtered[safeIndex];
       if (exercise) {
         pickExercise(exercise);
       }
@@ -122,7 +115,7 @@ export function ExerciseProgress({ sessions }) {
     : [];
   const summary = getExerciseProgressSummary(history);
   const lastSets = history.at(-1)?.sets || [];
-  const activeExercise = filtered[activeIndex];
+  const activeExercise = filtered[safeIndex];
 
   return (
     <section className={styles.section}>
@@ -174,7 +167,7 @@ export function ExerciseProgress({ sessions }) {
                     role="option"
                     aria-selected={selectedId === exercise.id}
                     className={`${styles.option} ${
-                      index === activeIndex ? styles.optionActive : ""
+                      index === safeIndex ? styles.optionActive : ""
                     }`}
                     onMouseEnter={() => setActiveIndex(index)}
                     onMouseDown={(event) => event.preventDefault()}

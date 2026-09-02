@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Flip } from "gsap/Flip";
-import { ChevronDown, Maximize2, X } from "lucide-react";
+import { ChevronDown, Dumbbell, Maximize2, SportShoe, X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
@@ -17,6 +17,7 @@ import {
   getWeekdayShortLabels,
   localDateKey,
 } from "@/lib/dates";
+import { getSessionActivityFlags } from "@/lib/workout";
 import styles from "./ProgressCalendar.module.css";
 
 gsap.registerPlugin(useGSAP, Flip);
@@ -82,6 +83,20 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     const map = new Map();
     for (const [key, list] of sessionsByDay) {
       map.set(key, list.length);
+    }
+    return map;
+  }, [sessionsByDay]);
+  const activities = useMemo(() => {
+    const map = new Map();
+    for (const [key, list] of sessionsByDay) {
+      let hasStrength = false;
+      let hasCardio = false;
+      for (const session of list) {
+        const flags = getSessionActivityFlags(session);
+        hasStrength = hasStrength || flags.hasStrength;
+        hasCardio = hasCardio || flags.hasCardio;
+      }
+      map.set(key, { hasStrength, hasCardio });
     }
     return map;
   }, [sessionsByDay]);
@@ -202,9 +217,17 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
           <div className={styles.grid} role="grid" aria-label={monthLabel}>
             {cells.map((cell) => {
               const count = counts.get(cell.key) || 0;
+              const activity = activities.get(cell.key) || {
+                hasStrength: false,
+                hasCardio: false,
+              };
               const names = uniqueRoutineNames(sessionsByDay.get(cell.key) || []);
               const selected = cell.key === selectedKey;
               const today = cell.key === todayKey;
+              const activityLabels = [
+                activity.hasStrength ? "pesas" : null,
+                activity.hasCardio ? "cardio" : null,
+              ].filter(Boolean);
               return (
                 <button
                   key={cell.key}
@@ -217,14 +240,27 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
                   aria-selected={selected}
                   aria-label={`${cell.day} de ${MONTH_NAMES[cell.month]}${
                     names.length ? `, ${names.join(", ")}` : ""
-                  }`}
+                  }${activityLabels.length ? `, ${activityLabels.join(" y ")}` : ""}`}
                   onClick={(event) => {
                     event.stopPropagation();
                     onDayClick(cell);
                   }}
                 >
-                  <span>{cell.day}</span>
-                  {count ? <span className={styles.dot} aria-hidden="true" /> : null}
+                  <span className={styles.dayNumber}>{cell.day}</span>
+                  {activity.hasStrength || activity.hasCardio ? (
+                    <span className={styles.dayIcons} aria-hidden="true">
+                      {activity.hasStrength ? (
+                        <span className={styles.dayIcon}>
+                          <Dumbbell size={11} strokeWidth={2.4} />
+                        </span>
+                      ) : null}
+                      {activity.hasCardio ? (
+                        <span className={styles.dayIcon}>
+                          <SportShoe size={11} strokeWidth={2.4} />
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}

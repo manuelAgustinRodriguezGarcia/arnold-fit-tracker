@@ -17,6 +17,7 @@ import { Logo } from "@/components/ui/Logo";
 import { Modal } from "@/components/ui/Modal";
 import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
 import { ExerciseWorkoutEditor } from "@/components/workout/ExerciseWorkoutEditor";
+import { HydrationStep } from "@/components/workout/HydrationStep";
 import { RestTimerPill } from "@/components/workout/RestTimerPill";
 import { WorkoutExercise } from "@/components/workout/WorkoutExercise";
 import { useArnold } from "@/hooks/useArnold";
@@ -60,6 +61,9 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   const { display } = useWorkoutTimer(activeWorkout);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [fatigueOpen, setFatigueOpen] = useState(false);
+  const [hydrationOpen, setHydrationOpen] = useState(false);
+  const [pendingFatigue, setPendingFatigue] = useState(null);
+  const [waterMl, setWaterMl] = useState(null);
   const [editing, setEditing] = useState(null);
   const [replacing, setReplacing] = useState(null);
   const [stretchOpen, setStretchOpen] = useState(false);
@@ -86,8 +90,17 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   }
 
   function onSelectFatigue(value) {
-    const saved = finishWorkout(value);
+    setPendingFatigue(value);
+    setWaterMl(null);
     setFatigueOpen(false);
+    setHydrationOpen(true);
+  }
+
+  function completeFinish(nextWaterMl) {
+    const saved = finishWorkout(pendingFatigue, nextWaterMl);
+    setHydrationOpen(false);
+    setPendingFatigue(null);
+    setWaterMl(null);
     if (saved) {
       onFinished();
     }
@@ -117,7 +130,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
 
       <ul className={styles.exercises}>
         {exercises.map((exercise) => (
-          <li key={exercise.workoutExerciseId}>
+          <li key={`${exercise.workoutExerciseId}:${exercise.exerciseId || exercise.name}`}>
             <WorkoutExercise
               exercise={exercise}
               current={activeWorkout.currentExerciseId === exercise.workoutExerciseId}
@@ -198,8 +211,29 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         </div>
       </Modal>
 
+      <Modal
+        open={hydrationOpen}
+        title="Cantidad de agua tomada"
+        onClose={() => completeFinish(null)}
+        footer={
+          <>
+            <Button size="lg" onClick={() => completeFinish(waterMl)}>
+              Continuar
+            </Button>
+            <Button variant="secondary" size="lg" onClick={() => completeFinish(null)}>
+              Omitir
+            </Button>
+          </>
+        }
+      >
+        <HydrationStep key={pendingFatigue || "water"} onChange={setWaterMl} />
+      </Modal>
+
       {editing ? (
         <ExerciseWorkoutEditor
+          key={`${editing}:${
+            exercises.find((item) => item.workoutExerciseId === editing)?.exerciseId || ""
+          }`}
           exercise={exercises.find((item) => item.workoutExerciseId === editing)}
           onClose={() => setEditing(null)}
           onReplace={() => {
@@ -248,8 +282,12 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
           .filter(Boolean)}
         onClose={() => setReplacing(null)}
         onSelect={(exercise) => {
-          if (replacing) {
-            swapWorkoutExercise(replacing, exercise.id);
+          const targetId = replacing;
+          if (targetId) {
+            const mode = swapWorkoutExercise(targetId, exercise.id);
+            if (mode === "replace") {
+              setEditing(targetId);
+            }
           }
           setReplacing(null);
         }}

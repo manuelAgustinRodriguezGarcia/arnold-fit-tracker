@@ -1,0 +1,59 @@
+.wrap {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+
+.hero {
+  color: var(--accent);
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  width: 100%;
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 1px solid var(--stone-taupe);
+  background: var(--marble);
+  overflow: hidden;
+}
+
+.field input,
+.unit {
+  min-height: var(--touch);
+  border: 0;
+  background: transparent;
+  color: var(--charcoal);
+}
+
+.field input {
+  width: 100%;
+  padding: 0 12px;
+}
+
+.field input:focus-visible,
+.unit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.unit {
+  padding: 0 10px;
+  border-left: 1px solid var(--stone-taupe);
+  font-weight: 700;
+}
+
+.hint {
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+}
+
+.glasses {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  color: var(--accent);
+  justify-items: center;
+}

@@ -5,7 +5,8 @@ import { Check, Dumbbell } from "lucide-react";
 import styles from "./ExerciseImage.module.css";
 
 export function ExerciseImage({ imagePath, name, size = 48, done = false }) {
-  const [failed, setFailed] = useState(false);
+  const [failedPath, setFailedPath] = useState(null);
+  const failed = failedPath === imagePath;
   const showImage = Boolean(imagePath) && !failed && !done;
 
   return (
@@ -22,7 +23,7 @@ export function ExerciseImage({ imagePath, name, size = 48, done = false }) {
           alt={name}
           width={size}
           height={size}
-          onError={() => setFailed(true)}
+          onError={() => setFailedPath(imagePath)}
         />
       ) : (
         <Dumbbell size={22} />

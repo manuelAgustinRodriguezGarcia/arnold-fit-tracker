@@ -103,7 +103,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: repeat(6, minmax(36px, auto));
+  grid-template-rows: repeat(6, minmax(42px, auto));
   gap: 4px;
 }
 
@@ -117,9 +117,12 @@
 .day {
   position: relative;
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
   width: 100%;
-  min-height: 36px;
+  min-height: 42px;
+  padding: 4px 1px 3px;
   border-radius: 12px;
   color: var(--charcoal);
   font-weight: 600;
@@ -129,10 +132,43 @@
 .expanded .day {
   min-height: var(--touch);
   font-size: 1.05rem;
+  gap: 4px;
 }
 
-.day span:first-child {
+.dayNumber {
   line-height: 1;
+}
+
+.dayIcons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.dayIcon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.expanded .dayIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.expanded .dayIcon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.selected .dayIcon {
+  background: var(--on-accent);
+  color: var(--accent);
 }
 
 .outside {
@@ -155,19 +191,6 @@
 
 .trained:not(.selected) {
   background: var(--stone-light);
-}
-
-.dot {
-  position: absolute;
-  bottom: 5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--bronze-aged);
-}
-
-.selected .dot {
-  background: var(--on-accent);
 }
 
 .caption {

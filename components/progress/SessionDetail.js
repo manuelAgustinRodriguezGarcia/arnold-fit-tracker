@@ -9,6 +9,7 @@ import {
   getTrainingTitle,
 } from "@/lib/dates";
 import { EXERCISE_TYPE, formatSeconds } from "@/lib/exercises";
+import { formatWaterMl } from "@/lib/hydration";
 import { FATIGUE, getFatigueLabel, getSessionExercises } from "@/lib/workout";
 import styles from "./SessionDetail.module.css";
 
@@ -128,6 +129,14 @@ export function SessionDetail({ session, onClose, onDelete }) {
             </dd>
           </div>
         </div>
+        {session.waterMl != null ? (
+          <div className={styles.row}>
+            <div>
+              <dt>Agua</dt>
+              <dd>{formatWaterMl(session.waterMl)}</dd>
+            </div>
+          </div>
+        ) : null}
       </dl>
 
       <section>

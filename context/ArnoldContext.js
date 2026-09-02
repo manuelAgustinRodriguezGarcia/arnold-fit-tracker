@@ -483,7 +483,7 @@ export function ArnoldProvider({ children }) {
   );
 
   const finishWorkout = useCallback(
-    (fatigue) => {
+    (fatigue, waterMl) => {
       let saved = false;
 
       updateArnoldStore((current) => {
@@ -491,7 +491,12 @@ export function ArnoldProvider({ children }) {
           return current;
         }
 
-        const session = createSession(current.activeWorkout, fatigue, new Date());
+        const session = createSession(
+          current.activeWorkout,
+          fatigue,
+          new Date(),
+          waterMl,
+        );
         saved = true;
         return {
           ...current,
