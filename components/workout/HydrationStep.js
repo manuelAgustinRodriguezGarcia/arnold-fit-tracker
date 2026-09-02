@@ -1,14 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { GlassWater } from "lucide-react";
 import { NUMBER_FIELD } from "@/lib/inputAttrs";
-import {
-  fromWaterMl,
-  glassCount,
-  parseWaterAmount,
-  toWaterMl,
-} from "@/lib/hydration";
+import { fromWaterMl, parseWaterAmount, toWaterMl } from "@/lib/hydration";
 import styles from "./HydrationStep.module.css";
 
 export function HydrationStep({ onChange }) {
@@ -16,13 +11,6 @@ export function HydrationStep({ onChange }) {
   const [text, setText] = useState("");
 
   const parsed = parseWaterAmount(text);
-  const waterMl = parsed.invalid || parsed.empty ? null : toWaterMl(parsed.value, unit);
-  const glasses = glassCount(waterMl);
-
-  const glassItems = useMemo(
-    () => Array.from({ length: glasses }, (_, index) => index),
-    [glasses],
-  );
 
   function emit(nextMl) {
     onChange?.(nextMl);
@@ -75,12 +63,6 @@ export function HydrationStep({ onChange }) {
 
       {parsed.invalid ? (
         <p className={styles.hint}>Ingresá un número válido.</p>
-      ) : glasses > 0 ? (
-        <div className={styles.glasses} aria-label={`${glasses} vasos`}>
-          {glassItems.map((index) => (
-            <GlassWater key={index} size={22} aria-hidden="true" />
-          ))}
-        </div>
       ) : null}
     </div>
   );

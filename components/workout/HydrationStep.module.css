@@ -48,12 +48,3 @@
   color: var(--stone-gray);
   font-size: 0.9rem;
 }
-
-.glasses {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 8px;
-  width: 100%;
-  color: var(--accent);
-  justify-items: center;
-}
