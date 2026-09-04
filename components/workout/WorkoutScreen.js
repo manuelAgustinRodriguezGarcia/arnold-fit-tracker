@@ -15,13 +15,13 @@ import {
   Square,
 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
-import { Logo } from "@/components/ui/Logo";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { Modal } from "@/components/ui/Modal";
 import { ExerciseEditor } from "@/components/routines/ExerciseEditor";
 import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
 import { ExerciseWorkoutEditor } from "@/components/workout/ExerciseWorkoutEditor";
 import { HydrationStep } from "@/components/workout/HydrationStep";
-import { RestTimerPill } from "@/components/workout/RestTimerPill";
+import { RestTimerSlot } from "@/components/workout/RestTimerPill";
 import { WorkoutExercise } from "@/components/workout/WorkoutExercise";
 import { useArnold } from "@/hooks/useArnold";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -257,23 +257,11 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         <IconButton label="Volver" onClick={onMinimize}>
           <ChevronLeft size={22} />
         </IconButton>
-        <div className={styles.brand}>
-          <Logo variant="wordmark" height={52} />
-        </div>
-        <span className={styles.spacer} />
+        <BrandMark />
       </header>
 
-      <div className={styles.hero}>
-        <p className={styles.timer}>{display}</p>
-      </div>
-
-      <div className={styles.restSlot} aria-hidden={!activeWorkout.restTimer}>
-        {activeWorkout.restTimer ? (
-          <RestTimerPill restTimer={activeWorkout.restTimer} />
-        ) : null}
-      </div>
-
-      <ul className={styles.exercises}>
+      <div className={styles.body}>
+        <ul className={styles.exercises}>
         {visibleExercises.map((exercise) => (
           <li key={`${exercise.workoutExerciseId}:${exercise.exerciseId || exercise.name}`}>
             <WorkoutExercise
@@ -288,50 +276,60 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
             />
           </li>
         ))}
-      </ul>
-
-      <div className={styles.endActions}>
-        {isStretching ? (
-          <Button
-            variant="secondary"
-            size="lg"
-            icon={<Plus size={18} />}
-            onClick={openAddStretch}
-          >
-            Agregar elongación
-          </Button>
-        ) : (
-          <Button
-            variant="secondary"
-            size="lg"
-            icon={<Plus size={18} />}
-            onClick={() => setAddingOpen(true)}
-          >
-            Agregar ejercicio
-          </Button>
-        )}
-      </div>
-
-      <div className={showFinalFinish || isStretching ? styles.controlsSingle : styles.controls}>
-        {showFinalFinish ? (
-          <Button size="lg" variant="danger" icon={<Square size={16} />} onClick={() => setFatigueOpen(true)}>
-            FINALIZAR
-          </Button>
-        ) : isStretching ? (
-          paused ? (
-            <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
-              Reanudar
+        <li className={styles.endActions}>
+          {isStretching ? (
+            <Button
+              variant="secondary"
+              size="lg"
+              icon={<Plus size={18} />}
+              onClick={openAddStretch}
+            >
+              Agregar elongación
             </Button>
           ) : (
             <Button
               variant="secondary"
               size="lg"
-              icon={<Pause size={18} />}
-              onClick={pauseActiveWorkout}
+              icon={<Plus size={18} />}
+              onClick={() => setAddingOpen(true)}
             >
-              Pausar
+              Agregar ejercicio
             </Button>
-          )
+          )}
+        </li>
+      </ul>
+      </div>
+
+      <RestTimerSlot restTimer={activeWorkout.restTimer} className={styles.restSlot} />
+
+      <div className={styles.controls}>
+        {showFinalFinish ? (
+          <>
+            <span className={styles.controlsSpacer} aria-hidden="true" />
+            <p className={styles.timer} aria-live="polite">{display}</p>
+            <Button size="lg" variant="danger" icon={<Square size={16} />} onClick={() => setFatigueOpen(true)}>
+              FINALIZAR
+            </Button>
+          </>
+        ) : isStretching ? (
+          <>
+            {paused ? (
+              <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
+                Reanudar
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="lg"
+                icon={<Pause size={18} />}
+                onClick={pauseActiveWorkout}
+              >
+                Pausar
+              </Button>
+            )}
+            <p className={styles.timer} aria-live="polite">{display}</p>
+            <span className={styles.controlsSpacer} aria-hidden="true" />
+          </>
         ) : (
           <>
             {paused ? (
@@ -348,6 +346,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
                 Pausar
               </Button>
             )}
+            <p className={styles.timer} aria-live="polite">{display}</p>
             <Button
               variant="danger"
               size="lg"
@@ -440,6 +439,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
             <Button
               size="lg"
               icon={<Bone size={18} />}
+              disabled={selectedStretchIds.length === 0}
               onClick={beginStretching}
             >
               {isStretching ? "Agregar" : "Elongar"}

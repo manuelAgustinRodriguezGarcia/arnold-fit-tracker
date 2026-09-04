@@ -31,6 +31,7 @@ import {
   skipRest,
   startTimedSet,
   syncActiveWorkoutWithRoutine,
+  toggleRestPause,
 } from "@/lib/workout";
 
 export const ArnoldContext = createContext(null);
@@ -468,6 +469,18 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
+  const toggleActiveRestPause = useCallback(() => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: toggleRestPause(current.activeWorkout, new Date()),
+      };
+    });
+  }, []);
+
   const expireActiveRest = useCallback(() => {
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
@@ -634,6 +647,7 @@ export function ArnoldProvider({ children }) {
       removeExerciseFromActiveWorkout,
       adjustActiveRest,
       skipActiveRest,
+      toggleActiveRestPause,
       expireActiveRest,
       beginTimedSet,
       finishTimedSet,
@@ -672,6 +686,7 @@ export function ArnoldProvider({ children }) {
       removeExerciseFromActiveWorkout,
       adjustActiveRest,
       skipActiveRest,
+      toggleActiveRestPause,
       expireActiveRest,
       beginTimedSet,
       finishTimedSet,

@@ -59,8 +59,11 @@
 .handleWrap {
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
+  z-index: 2;
   margin: calc(var(--space-3) * -1) calc(var(--space-4) * -1) 0;
   padding: 8px var(--space-4) var(--space-2);
+  background: var(--ivory);
 }
 
 .handleButton {
@@ -84,11 +87,23 @@
   background: var(--stone-taupe);
 }
 
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
 .player {
   display: grid;
   justify-items: center;
   gap: var(--space-3);
-  flex-shrink: 0;
   width: 100%;
   padding-bottom: var(--space-4);
 }
@@ -120,14 +135,6 @@
 
 .playlists {
   min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.playlists::-webkit-scrollbar {
-  display: none;
 }
 
 @keyframes fadeIn {

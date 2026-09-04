@@ -20,7 +20,9 @@ export function WorkoutExercise({
   const complete = isExerciseComplete(exercise);
 
   return (
-    <article className={`${styles.card} ${current ? styles.current : ""}`}>
+    <article
+      className={`${styles.card} ${current ? styles.current : ""} ${complete ? styles.complete : ""}`}
+    >
       <div className={styles.top}>
         <ExerciseImage
           imagePath={exercise.imagePath}
@@ -29,18 +31,16 @@ export function WorkoutExercise({
         />
         <div className={styles.copy}>
           <strong>{exercise.name}</strong>
-          <span>{formatCurrentSetSummary(exercise)}</span>
-          {current ? (
-            <span className={styles.badge}>
-              {complete ? "Último hecho" : "En curso"}
-            </span>
-          ) : null}
+          <div className={styles.meta}>
+            <span>{formatCurrentSetSummary(exercise)}</span>
+            {current ? (
+              <span className={styles.badge}>
+                {complete ? "Último hecho" : "En curso"}
+              </span>
+            ) : null}
+          </div>
         </div>
-      </div>
-
-      <div className={styles.setsHeader}>
-        <p>Series</p>
-        <IconButton label="Editar series" onClick={onEdit}>
+        <IconButton label="Editar series" onClick={onEdit} className={styles.edit}>
           <Pencil size={18} />
         </IconButton>
       </div>

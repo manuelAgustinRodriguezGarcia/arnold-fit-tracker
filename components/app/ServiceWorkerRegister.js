@@ -2,9 +2,29 @@
 
 import { useEffect } from "react";
 
+function clearDevServiceWorkers() {
+  return Promise.all([
+    navigator.serviceWorker.getRegistrations().then((registrations) =>
+      Promise.all(registrations.map((registration) => registration.unregister())),
+    ),
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("arnold-"))
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  ]);
+}
+
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
+      return undefined;
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      clearDevServiceWorkers().catch(() => {});
       return undefined;
     }
 

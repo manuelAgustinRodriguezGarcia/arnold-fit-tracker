@@ -40,20 +40,9 @@ export function SpotifyPlaylists({
 
   return (
     <section className={styles.section} aria-label="Tus playlists">
-      <h3 className={styles.heading}>Tus playlists</h3>
-      {loading ? (
-        <div className={styles.list} aria-busy="true" aria-label="Cargando playlists">
-          <div className={styles.skeleton} />
-          <div className={styles.skeleton} />
-          <div className={styles.skeleton} />
-        </div>
-      ) : null}
-      {!loading && error ? <p className={styles.error}>{error}</p> : null}
-      {!loading && !error && !hasPlaylists ? (
-        <p className={styles.empty}>Todavía no tenés playlists disponibles.</p>
-      ) : null}
-      {!loading && hasPlaylists ? (
-        <>
+      <div className={styles.sticky}>
+        <h3 className={styles.heading}>Tus playlists</h3>
+        {!loading && hasPlaylists ? (
           <div className={styles.toolbar}>
             <label className={styles.search}>
               <Search size={18} aria-hidden="true" />
@@ -82,30 +71,43 @@ export function SpotifyPlaylists({
               {playlistSort === "asc" ? "A-Z" : "Z-A"}
             </button>
           </div>
-          {noSearchMatches ? (
-            <div className={styles.emptyState}>
-              <p className={styles.empty}>No encontramos playlists con esa búsqueda.</p>
-              <button
-                type="button"
-                className={styles.clearSearch}
-                onClick={() => setPlaylistSearch("")}
-              >
-                Limpiar búsqueda
-              </button>
-            </div>
-          ) : (
-            <div className={styles.list}>
-              {visiblePlaylists.map((playlist) => (
-                <SpotifyPlaylistItem
-                  key={playlist.id || playlist.uri}
-                  playlist={playlist}
-                  busy={startingPlaylistId === playlist.id}
-                  onSelect={onSelect}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        ) : null}
+      </div>
+      {loading ? (
+        <div className={styles.list} aria-busy="true" aria-label="Cargando playlists">
+          <div className={styles.skeleton} />
+          <div className={styles.skeleton} />
+          <div className={styles.skeleton} />
+        </div>
+      ) : null}
+      {!loading && error ? <p className={styles.error}>{error}</p> : null}
+      {!loading && !error && !hasPlaylists ? (
+        <p className={styles.empty}>Todavía no tenés playlists disponibles.</p>
+      ) : null}
+      {!loading && hasPlaylists ? (
+        noSearchMatches ? (
+          <div className={styles.emptyState}>
+            <p className={styles.empty}>No encontramos playlists con esa búsqueda.</p>
+            <button
+              type="button"
+              className={styles.clearSearch}
+              onClick={() => setPlaylistSearch("")}
+            >
+              Limpiar búsqueda
+            </button>
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {visiblePlaylists.map((playlist) => (
+              <SpotifyPlaylistItem
+                key={playlist.id || playlist.uri}
+                playlist={playlist}
+                busy={startingPlaylistId === playlist.id}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        )
       ) : null}
     </section>
   );

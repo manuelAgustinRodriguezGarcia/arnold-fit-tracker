@@ -1,50 +1,47 @@
-.wrap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  display: grid;
-  gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-3);
-  pointer-events: none;
+.slot {
+  overflow: hidden;
 }
 
-.wrap > * {
-  pointer-events: auto;
+.inner {
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+:global(html[data-spotify-pill="on"]) .inner {
+  padding-bottom: calc(var(--space-3) + var(--spotify-pill-space));
+}
+
+.wrap {
+  display: grid;
 }
 
 .pill {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  min-height: 52px;
-  padding: 0;
+  grid-template-columns: 1fr 1fr max-content 1fr 1fr;
+  align-items: stretch;
+  min-height: 56px;
+  overflow: hidden;
   border-radius: 999px;
   background: var(--bronze-dark);
   color: var(--on-accent);
   box-shadow: var(--shadow-card);
 }
 
-.adjust {
-  width: 104px;
-  min-height: 52px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: inherit;
-}
-
-.minus {
+.adjust,
+.iconBtn,
+.time {
+  min-height: 56px;
   border-right: 1px solid color-mix(in srgb, var(--on-accent) 28%, transparent);
 }
 
-.plus {
-  border-left: 1px solid color-mix(in srgb, var(--on-accent) 28%, transparent);
+.pill > :last-child {
+  border-right: none;
 }
 
-.skip {
-  min-width: var(--touch);
-  min-height: var(--touch);
-  border-radius: 999px;
+.adjust {
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  font-size: 1.15rem;
   font-weight: 700;
   color: inherit;
 }
@@ -54,36 +51,77 @@
   pointer-events: none;
 }
 
+.iconBtn {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  color: inherit;
+}
+
+.press {
+  display: inline-block;
+  transition: transform 90ms var(--ease-out);
+}
+
+.iconCircle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  transition: transform 90ms var(--ease-out);
+}
+
+.adjust:active:not(:disabled) .press,
+.adjust.pressed:not(:disabled) .press,
+.iconBtn:active .iconCircle,
+.iconBtn.pressed .iconCircle {
+  transform: scale(0.84);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .iconCircle {
+    transition: none;
+  }
+
+  .adjust:active:not(:disabled) .press,
+  .adjust.pressed:not(:disabled) .press,
+  .iconBtn:active .iconCircle,
+  .iconBtn.pressed .iconCircle {
+    transform: none;
+  }
+}
+
+.adjust:focus-visible,
+.iconBtn:focus-visible {
+  outline: 2px solid var(--on-accent);
+  outline-offset: -4px;
+}
+
 .time {
   display: grid;
   width: max-content;
   justify-self: center;
   justify-items: center;
+  align-content: center;
   gap: 1px;
   padding: 0 12px;
   font-variant-numeric: tabular-nums;
 }
 
 .time span {
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.8;
 }
 
 .time strong {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-}
-
-.skip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  color: var(--stone-gray);
-  font-weight: 600;
+  line-height: 1;
 }
 
 :global(html[data-theme="neon"]) .pill {
@@ -92,12 +130,10 @@
   border: 1px solid var(--stone-taupe);
 }
 
-:global(html[data-theme="neon"]) .minus {
+:global(html[data-theme="neon"]) .adjust,
+:global(html[data-theme="neon"]) .iconBtn,
+:global(html[data-theme="neon"]) .time {
   border-right-color: var(--stone-taupe);
-}
-
-:global(html[data-theme="neon"]) .plus {
-  border-left-color: var(--stone-taupe);
 }
 
 :global(html[data-theme="neon"]) .time strong {

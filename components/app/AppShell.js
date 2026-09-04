@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { Toast } from "@/components/ui/Toast";
@@ -18,9 +18,7 @@ import { WorkoutScreen } from "@/components/workout/WorkoutScreen";
 import { SettingsModal } from "@/components/settings/SettingsModal";
 import { SpotifyController } from "@/components/spotify/SpotifyController";
 import { useArnold } from "@/hooks/useArnold";
-import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
-import { useSpotify } from "@/context/SpotifyContext";
-import { NAV_VIEWS, pathToView, viewToPath } from "@/lib/navigation";
+import { pathToView } from "@/lib/navigation";
 import styles from "./AppShell.module.css";
 
 export function AppShell() {
@@ -37,7 +35,6 @@ export function AppShell() {
     notice,
     clearNotice,
   } = useArnold();
-  const { isExpanded: spotifyExpanded } = useSpotify();
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [formRoutine, setFormRoutine] = useState(undefined);
   const [formOpen, setFormOpen] = useState(false);
@@ -51,38 +48,6 @@ export function AppShell() {
   const [activeConflict, setActiveConflict] = useState(false);
   const [sessionDetail, setSessionDetail] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const shellRef = useRef(null);
-  const overlayOpen =
-    workoutOpen ||
-    formOpen ||
-    exerciseFormOpen ||
-    stretchFormOpen ||
-    pickerOpen ||
-    Boolean(sessionDetail) ||
-    Boolean(deleteTarget) ||
-    Boolean(exerciseToDelete) ||
-    Boolean(sessionToDelete) ||
-    activeConflict ||
-    settingsOpen ||
-    spotifyExpanded;
-
-  const navigateTo = useCallback(
-    (nextView) => {
-      const nextPath = viewToPath(nextView);
-      if (nextPath !== pathname) {
-        router.push(nextPath);
-      }
-    },
-    [pathname, router],
-  );
-
-  useSwipeNavigation({
-    targetRef: shellRef,
-    view,
-    views: NAV_VIEWS,
-    onChange: navigateTo,
-    enabled: isReady && !overlayOpen,
-  });
 
   function openCreateForm() {
     setFormRoutine(null);
@@ -137,7 +102,7 @@ export function AppShell() {
 
   return (
     <>
-      <div className={styles.shell} ref={shellRef}>
+      <div className={styles.shell}>
         <a className={styles.skip} href="#contenido">
           Saltar al contenido
         </a>

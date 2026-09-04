@@ -18,7 +18,7 @@ export function SetButtons({ sets, onToggle }) {
           }
           onClick={() => onToggle(set)}
         >
-          {set.number}
+          {`S${set.number}`}
         </button>
       ))}
     </div>

@@ -331,53 +331,55 @@ export function SpotifyPlayerSheet({
             <span className={styles.handle} aria-hidden="true" />
           </button>
         </div>
-        <div className={styles.player}>
-          <SpotifyCover
-            src={playback?.imageUrl}
-            alt={playback?.album || playback?.title || ""}
-            size="lg"
-          />
-          <h2 id="spotify-sheet-title" className={styles.title}>
-            {idle ? "Spotify" : playback.title}
-          </h2>
-          <p className={styles.artist}>{subtitle}</p>
-          <SpotifyProgress
-            value={displayedProgressMs}
-            max={playback?.durationMs || 0}
-            disabled={!playback?.canSeek}
-            onSeekStart={onSeekStart}
-            onSeekInput={onSeekInput}
-            onSeekCommit={onSeekCommit}
-          />
-          <SpotifyPlaybackControls
-            size="lg"
-            isPlaying={Boolean(playback?.isPlaying)}
-            canPlay={idle ? false : playback.canPlay}
-            canPause={idle ? false : playback.canPause}
-            canSkipPrevious={idle ? false : playback.canSkipPrevious}
-            canSkipNext={idle ? false : playback.canSkipNext}
-            canShuffle={idle ? false : playback.canShuffle}
-            canRepeat={idle ? false : playback.canRepeat}
-            shuffleEnabled={Boolean(playback?.shuffleEnabled)}
-            repeatMode={playback?.repeatMode || "off"}
-            skipBusy={skipBusy}
-            shuffleBusy={shuffleBusy}
-            repeatBusy={repeatBusy}
-            onPrevious={onPrevious}
-            onToggle={onToggle}
-            onNext={onNext}
-            onShuffle={onShuffle}
-            onRepeat={onRepeat}
-          />
-        </div>
-        <div className={styles.playlists}>
-          <SpotifyPlaylists
-            playlists={playlists}
-            loading={playlistsLoading}
-            error={playlistsError}
-            startingPlaylistId={startingPlaylistId}
-            onSelect={onSelectPlaylist}
-          />
+        <div className={styles.body}>
+          <div className={styles.player}>
+            <SpotifyCover
+              src={playback?.imageUrl}
+              alt={playback?.album || playback?.title || ""}
+              size="lg"
+            />
+            <h2 id="spotify-sheet-title" className={styles.title}>
+              {idle ? "Spotify" : playback.title}
+            </h2>
+            <p className={styles.artist}>{subtitle}</p>
+            <SpotifyProgress
+              value={displayedProgressMs}
+              max={playback?.durationMs || 0}
+              disabled={!playback?.canSeek}
+              onSeekStart={onSeekStart}
+              onSeekInput={onSeekInput}
+              onSeekCommit={onSeekCommit}
+            />
+            <SpotifyPlaybackControls
+              size="lg"
+              isPlaying={Boolean(playback?.isPlaying)}
+              canPlay={idle ? false : playback.canPlay}
+              canPause={idle ? false : playback.canPause}
+              canSkipPrevious={idle ? false : playback.canSkipPrevious}
+              canSkipNext={idle ? false : playback.canSkipNext}
+              canShuffle={idle ? false : playback.canShuffle}
+              canRepeat={idle ? false : playback.canRepeat}
+              shuffleEnabled={Boolean(playback?.shuffleEnabled)}
+              repeatMode={playback?.repeatMode || "off"}
+              skipBusy={skipBusy}
+              shuffleBusy={shuffleBusy}
+              repeatBusy={repeatBusy}
+              onPrevious={onPrevious}
+              onToggle={onToggle}
+              onNext={onNext}
+              onShuffle={onShuffle}
+              onRepeat={onRepeat}
+            />
+          </div>
+          <div className={styles.playlists}>
+            <SpotifyPlaylists
+              playlists={playlists}
+              loading={playlistsLoading}
+              error={playlistsError}
+              startingPlaylistId={startingPlaylistId}
+              onSelect={onSelectPlaylist}
+            />
+          </div>
         </div>
       </div>
     </div>
