@@ -5,7 +5,7 @@ import { ExerciseImage } from "@/components/ui/ExerciseImage";
 import { IconButton } from "@/components/ui/Button";
 import { SetButtons } from "@/components/workout/SetButtons";
 import { TimedSetTimer } from "@/components/workout/TimedSetTimer";
-import { EXERCISE_TYPE, formatExerciseSummary } from "@/lib/exercises";
+import { EXERCISE_TYPE, formatCurrentSetSummary } from "@/lib/exercises";
 import { isStretchExercise } from "@/lib/stretchPresets";
 import { isExerciseComplete } from "@/lib/workoutSets";
 import styles from "./WorkoutExercise.module.css";
@@ -29,7 +29,7 @@ export function WorkoutExercise({
         />
         <div className={styles.copy}>
           <strong>{exercise.name}</strong>
-          <span>{formatExerciseSummary(exercise)}</span>
+          <span>{formatCurrentSetSummary(exercise)}</span>
           {current ? (
             <span className={styles.badge}>
               {complete ? "Último hecho" : "En curso"}

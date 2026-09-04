@@ -52,12 +52,16 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#F3F0E9",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F3F0E9" },
+    { media: "(prefers-color-scheme: dark)", color: "#171512" },
+  ],
+  colorScheme: "light dark",
   viewportFit: "cover",
   interactiveWidget: "resizes-visual",
 };
 
-const THEME_BOOT = `(function(){try{var raw=localStorage.getItem("arnold:v1");var theme="classic";var appearance="light";if(raw){var parsed=JSON.parse(raw);var s=parsed&&parsed.settings;if(s){var p=s.themePalette;if(p==="stone"){theme="stone";}else if(p==="neon"){theme="neon";}if(s.appearance==="dark"){appearance="dark";}}}document.documentElement.setAttribute("data-theme",theme);document.documentElement.setAttribute("data-appearance",appearance);var color="#F3F0E9";if(theme==="neon"){color="#111113";}else if(appearance==="dark"){color=theme==="stone"?"#151515":"#171512";}else if(theme==="stone"){color="#F4F4F1";}var meta=document.querySelector('meta[name="theme-color"]');if(meta){meta.setAttribute("content",color);}}catch(e){document.documentElement.setAttribute("data-theme","classic");document.documentElement.setAttribute("data-appearance","light");}})();`;
+const THEME_BOOT = `(function(){try{var raw=localStorage.getItem("arnold:v1");var theme="classic";var appearance="light";if(raw){var parsed=JSON.parse(raw);var s=parsed&&parsed.settings;if(s){var p=s.themePalette;if(p==="stone"){theme="stone";}else if(p==="neon"){theme="neon";}if(s.appearance==="dark"){appearance="dark";}}}var dark=theme==="neon"||appearance==="dark";var color="#F3F0E9";if(theme==="neon"){color="#111113";}else if(dark&&theme==="stone"){color="#151515";}else if(dark){color="#171512";}else if(theme==="stone"){color="#F4F4F1";}var scheme=dark?"dark":"light";var status=dark?"black-translucent":"default";var root=document.documentElement;root.setAttribute("data-theme",theme);root.setAttribute("data-appearance",appearance);root.style.colorScheme=scheme;function ensure(name){var meta=document.querySelector('meta[name="'+name+'"]');if(!meta){meta=document.createElement("meta");meta.setAttribute("name",name);document.head.appendChild(meta);}return meta;}ensure("theme-color").setAttribute("content",color);ensure("color-scheme").setAttribute("content",scheme);ensure("apple-mobile-web-app-status-bar-style").setAttribute("content",status);}catch(e){document.documentElement.setAttribute("data-theme","classic");document.documentElement.setAttribute("data-appearance","light");document.documentElement.style.colorScheme="light";}})();`;
 
 export default function RootLayout({ children }) {
   return (

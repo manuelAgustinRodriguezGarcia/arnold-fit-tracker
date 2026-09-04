@@ -4,10 +4,6 @@
   gap: var(--space-4);
 }
 
-.wrapOpen {
-  padding-bottom: 112px;
-}
-
 .hero {
   color: var(--accent);
 }
@@ -43,6 +39,7 @@
 
 .unitPicker {
   position: relative;
+  z-index: 2;
   border-left: 1px solid var(--stone-taupe);
 }
 
@@ -76,7 +73,7 @@
 
 .menu {
   position: absolute;
-  top: calc(100% + 6px);
+  bottom: calc(100% + 6px);
   right: 0;
   z-index: 4;
   min-width: 88px;

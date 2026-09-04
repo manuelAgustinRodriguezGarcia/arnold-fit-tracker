@@ -46,10 +46,12 @@
   padding: var(--space-4);
 }
 
-.kicker,
-.status {
-  color: var(--stone-gray);
-  font-weight: 600;
+.restSlot {
+  position: relative;
+  z-index: 8;
+  height: 0;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .timer {
@@ -58,7 +60,7 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   line-height: 1.1;
-  margin: 10px 0;
+  margin: 0;
   color: var(--timer);
 }
 
@@ -124,11 +126,29 @@
   background: var(--marble);
 }
 
-.stretchWrap {
+.controlsSingle {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--stone-light);
+  background: var(--marble);
+}
+
+.controlsSingle > button {
+  width: min(100%, 320px);
+  justify-self: center;
+}
+
+.endActions {
+  display: grid;
+  gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-3);
 }
 
-:global(html[data-spotify-pill="on"]) .stretchWrap {
+:global(html[data-spotify-pill="on"]) .endActions {
   padding-bottom: calc(var(--space-3) + 76px);
 }
 
@@ -142,8 +162,9 @@
 }
 
 .stretchItem {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   width: 100%;
   min-height: var(--touch);
   padding: var(--space-3);
@@ -153,15 +174,44 @@
   text-align: left;
 }
 
-.stretchItem:disabled {
-  background: var(--stone-light);
-  color: var(--stone-gray);
-  cursor: not-allowed;
+.stretchItemSelected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--ivory));
 }
 
-.stretchItem span {
+.stretchCopy {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.stretchCopy span {
   color: var(--stone-gray);
   font-size: 0.85rem;
+}
+
+.stretchCheck {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.stretchFooter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.stretchFooter > button {
+  width: 100%;
+  min-width: 0;
 }
 
 .fatigue {
@@ -176,7 +226,6 @@
   min-height: 64px;
   padding: 0 16px;
   border-radius: var(--radius-md);
-  background: var(--ivory);
   border: 1px solid var(--stone-taupe);
   font-weight: 700;
   text-align: left;
@@ -185,15 +234,26 @@
     border-color var(--duration-fast) var(--ease-out);
 }
 
-.fatigueCard:active {
-  border-color: var(--bronze-aged);
-  transform: scale(0.98);
+.fatigueVeryTired {
+  background: #c93a3a;
+  border-color: #c93a3a;
+  color: #ffffff;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .fatigueCard:hover {
-    border-color: var(--bronze-aged);
-  }
+.fatigueTired {
+  background: #b8860b;
+  border-color: #b8860b;
+  color: #ffffff;
+}
+
+.fatigueRegular {
+  background: #2f8a4e;
+  border-color: #2f8a4e;
+  color: #ffffff;
+}
+
+.fatigueCard:active {
+  transform: scale(0.98);
 }
 
 @keyframes fadeView {

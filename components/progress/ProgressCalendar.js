@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Flip } from "gsap/Flip";
-import { ChevronDown, Dumbbell, Maximize2, SportShoe, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Dumbbell, Maximize2, SportShoe, X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
@@ -187,6 +187,13 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     toggleExpanded(true);
   }
 
+  function shiftMonth(delta) {
+    const next = new Date(year, month + delta, 1);
+    setYear(next.getFullYear());
+    setMonth(next.getMonth());
+    setPicker(null);
+  }
+
   const selectedNames = uniqueRoutineNames(sessionsByDay.get(selectedKey) || []);
   const selectedDate = selectedKey
     ? new Date(`${selectedKey}T12:00:00`)
@@ -207,6 +214,31 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
         aria-label={`Calendario ${monthLabel}`}
         onPointerUp={onShellPointerUp}
       >
+        <div
+          className={styles.header}
+          data-calendar-chrome
+          onPointerUp={(event) => event.stopPropagation()}
+        >
+          <IconButton label="Mes anterior" onClick={() => shiftMonth(-1)}>
+            <ChevronLeft size={20} />
+          </IconButton>
+          <button
+            type="button"
+            className={`${styles.selector} ${styles.monthSelector} ${
+              picker === "month" ? styles.selectorOpen : ""
+            }`}
+            aria-haspopup="listbox"
+            aria-expanded={picker === "month"}
+            onClick={() => setPicker((current) => (current === "month" ? null : "month"))}
+          >
+            <span>{MONTH_NAMES[month]}</span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </button>
+          <IconButton label="Mes siguiente" onClick={() => shiftMonth(1)}>
+            <ChevronRight size={20} />
+          </IconButton>
+        </div>
+
         <div className={styles.body}>
           <div className={styles.weekdays} aria-hidden="true">
             {WEEKDAYS.map((label) => (
@@ -331,17 +363,9 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
         >
           <button
             type="button"
-            className={`${styles.selector} ${picker === "month" ? styles.selectorOpen : ""}`}
-            aria-haspopup="listbox"
-            aria-expanded={picker === "month"}
-            onClick={() => setPicker((current) => (current === "month" ? null : "month"))}
-          >
-            <span>{MONTH_NAMES[month]}</span>
-            <ChevronDown size={16} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className={`${styles.selector} ${picker === "year" ? styles.selectorOpen : ""}`}
+            className={`${styles.selector} ${styles.yearSelector} ${
+              picker === "year" ? styles.selectorOpen : ""
+            }`}
             aria-haspopup="listbox"
             aria-expanded={picker === "year"}
             onClick={() => setPicker((current) => (current === "year" ? null : "year"))}
@@ -351,6 +375,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
           </button>
           {expanded ? (
             <IconButton
+              className={styles.expandButton}
               label="Cerrar calendario"
               aria-expanded="true"
               onClick={(event) => {
@@ -362,6 +387,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
             </IconButton>
           ) : (
             <IconButton
+              className={styles.expandButton}
               label="Ampliar calendario"
               aria-expanded="false"
               onClick={(event) => {

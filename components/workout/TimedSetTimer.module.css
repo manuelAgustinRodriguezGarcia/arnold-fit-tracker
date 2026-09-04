@@ -1,25 +1,80 @@
 .timer {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: var(--space-3);
+  position: relative;
+  overflow: hidden;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bronze-dark) 10%, var(--ivory));
-  border: 1px solid color-mix(in srgb, var(--bronze-dark) 28%, var(--stone-taupe));
+  background: color-mix(in srgb, var(--accent) 26%, var(--ivory));
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--stone-taupe));
 }
 
-.timer span {
-  color: var(--stone-gray);
-  font-size: 0.75rem;
+.fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  background: color-mix(in srgb, var(--accent) 42%, transparent);
+  pointer-events: none;
+  transition: transform 250ms linear;
+}
+
+.row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.action {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: var(--on-accent);
+  background: var(--accent);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.action:active {
+  transform: scale(0.94);
+}
+
+.content {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.content span {
+  color: var(--charcoal);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  opacity: 0.78;
 }
 
-.timer strong {
+.content strong {
   font-family: var(--font-sans);
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   color: var(--timer);
+  line-height: 1.1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+
+  .action:active {
+    transform: none;
+  }
 }

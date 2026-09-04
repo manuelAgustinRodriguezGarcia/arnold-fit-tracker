@@ -43,6 +43,7 @@ export function AppShell() {
   const [formOpen, setFormOpen] = useState(false);
   const [exerciseForm, setExerciseForm] = useState(undefined);
   const [exerciseFormOpen, setExerciseFormOpen] = useState(false);
+  const [stretchFormOpen, setStretchFormOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
@@ -55,6 +56,7 @@ export function AppShell() {
     workoutOpen ||
     formOpen ||
     exerciseFormOpen ||
+    stretchFormOpen ||
     pickerOpen ||
     Boolean(sessionDetail) ||
     Boolean(deleteTarget) ||
@@ -96,6 +98,10 @@ export function AppShell() {
   function openCreateExercise() {
     setExerciseForm(null);
     setExerciseFormOpen(true);
+  }
+
+  function openCreateStretch() {
+    setStretchFormOpen(true);
   }
 
   function openEditExercise(exercise) {
@@ -154,6 +160,7 @@ export function AppShell() {
                 onDelete={setDeleteTarget}
                 onStart={handleStart}
                 onCreateExercise={openCreateExercise}
+                onCreateStretch={openCreateStretch}
                 onEditExercise={openEditExercise}
                 onDeleteExercise={setExerciseToDelete}
               />
@@ -192,6 +199,13 @@ export function AppShell() {
           key={exerciseForm?.id || "create-exercise"}
           exercise={exerciseForm}
           onClose={() => setExerciseFormOpen(false)}
+        />
+      ) : null}
+      {stretchFormOpen ? (
+        <ExerciseEditor
+          key="create-stretch"
+          asStretch
+          onClose={() => setStretchFormOpen(false)}
         />
       ) : null}
       <StartWorkoutPicker

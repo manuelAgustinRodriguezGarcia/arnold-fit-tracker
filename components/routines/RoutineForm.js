@@ -29,7 +29,7 @@ function entriesFromRoutine(routine, library) {
 }
 
 export function RoutineForm({ routine, onClose }) {
-  const { createRoutine, updateRoutine, exercises } = useArnold();
+  const { createRoutine, updateRoutine, exercises, activeWorkout } = useArnold();
   const [name, setName] = useState(routine?.name || "");
   const [description, setDescription] = useState(routine?.description || "");
   const [entries, setEntries] = useState(() => entriesFromRoutine(routine, exercises));
@@ -37,6 +37,7 @@ export function RoutineForm({ routine, onClose }) {
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [error, setError] = useState("");
   const [reordering, setReordering] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
   const listRef = useRef(null);
   useGSAP({ scope: listRef });
 
@@ -88,6 +89,21 @@ export function RoutineForm({ routine, onClose }) {
     setEntries((current) => current.filter((item) => item.id !== id));
   }
 
+  function saveRoutine(payload, applyToActive = false) {
+    const result = routine
+      ? updateRoutine(routine.id, payload, { applyToActive })
+      : createRoutine(payload);
+
+    if (!result.ok) {
+      setError(result.error);
+      setPendingPayload(null);
+      return;
+    }
+
+    setPendingPayload(null);
+    onClose();
+  }
+
   function onSubmit(event) {
     event.preventDefault();
     const payload = {
@@ -95,16 +111,13 @@ export function RoutineForm({ routine, onClose }) {
       description,
       exercises: entries.map((item) => ({ exerciseId: item.exerciseId })),
     };
-    const result = routine
-      ? updateRoutine(routine.id, payload)
-      : createRoutine(payload);
 
-    if (!result.ok) {
-      setError(result.error);
+    if (routine && activeWorkout?.routineId === routine.id) {
+      setPendingPayload(payload);
       return;
     }
 
-    onClose();
+    saveRoutine(payload);
   }
 
   return (
@@ -225,6 +238,34 @@ export function RoutineForm({ routine, onClose }) {
           }}
         />
       ) : null}
+
+      <Modal
+        open={Boolean(pendingPayload)}
+        title="Entrenamiento en curso"
+        onClose={() => setPendingPayload(null)}
+        footer={
+          <>
+            <Button
+              size="lg"
+              onClick={() => saveRoutine(pendingPayload, true)}
+            >
+              Aplicar a este entrenamiento
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => saveRoutine(pendingPayload, false)}
+            >
+              Solo para la próxima vez
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Esta rutina está activa. ¿Aplicás los cambios al entrenamiento actual o
+          solo para la próxima vez?
+        </p>
+      </Modal>
     </>
   );
 }

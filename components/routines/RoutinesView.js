@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Dumbbell, ListTodo, Plus } from "lucide-react";
+import { Bone, Dumbbell, ListTodo, Plus } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ExerciseLibrary } from "@/components/routines/ExerciseLibrary";
 import { RoutineCard } from "@/components/routines/RoutineCard";
@@ -14,6 +14,7 @@ export function RoutinesView({
   onDelete,
   onStart,
   onCreateExercise,
+  onCreateStretch,
   onEditExercise,
   onDeleteExercise,
 }) {
@@ -148,6 +149,15 @@ export function RoutinesView({
             >
               <Dumbbell size={18} />
               Nuevo ejercicio
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={`${styles.action} ${menuClosing ? styles.actionClosing : ""}`}
+              onClick={() => choose(onCreateStretch)}
+            >
+              <Bone size={18} />
+              Nueva elongación
             </button>
           </div>
         ) : null}

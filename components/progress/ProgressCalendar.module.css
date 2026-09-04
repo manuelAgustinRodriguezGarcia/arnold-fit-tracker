@@ -39,9 +39,19 @@
   min-height: 0;
 }
 
+.header {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--space-2);
+  position: relative;
+  z-index: 4;
+  flex-shrink: 0;
+}
+
 .footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: var(--space-2);
   position: relative;
@@ -61,6 +71,37 @@
   background: var(--stone-light);
   color: var(--charcoal);
   font-weight: 700;
+}
+
+.monthSelector {
+  justify-self: center;
+  max-width: 100%;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.monthSelector.selectorOpen {
+  background: transparent;
+  border-color: transparent;
+  color: var(--charcoal);
+}
+
+.yearSelector {
+  justify-self: start;
+}
+
+.expandButton {
+  justify-self: end;
+  width: var(--touch);
+  height: var(--touch);
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border: 0;
+  border-radius: 12px;
+  background: var(--stone-light);
 }
 
 .selector span {
@@ -86,6 +127,10 @@
 
 .expanded .selector {
   min-height: 52px;
+}
+
+.expanded .monthSelector {
+  min-height: auto;
 }
 
 .weekdays {
@@ -285,6 +330,11 @@
   .option:hover,
   .yearOption:hover {
     background: color-mix(in srgb, var(--stone-light) 70%, var(--ivory));
+  }
+
+  .monthSelector:hover,
+  .monthSelector.selectorOpen:hover {
+    background: transparent;
   }
 
   .selectorOpen:hover,

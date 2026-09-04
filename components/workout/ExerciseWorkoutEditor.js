@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { ArrowLeftRight, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
@@ -30,7 +30,7 @@ function draftsFromExercise(exercise) {
   }));
 }
 
-export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
+export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }) {
   const { saveWorkoutExercise } = useArnold();
   const minSets = exercise ? getMinSetCount(exercise) : 1;
   const timed = exercise?.type === EXERCISE_TYPE.TIMED;
@@ -118,14 +118,9 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
       title="Editar series"
       onClose={onClose}
       footer={
-        <>
-          <Button size="lg" icon={<Check size={18} />} onClick={onSave}>
-            Guardar
-          </Button>
-          <Button variant="secondary" size="lg" onClick={onClose}>
-            Cancelar
-          </Button>
-        </>
+        <Button size="lg" icon={<Check size={18} />} onClick={onSave}>
+          Guardar
+        </Button>
       }
     >
       <div className={styles.form}>
@@ -192,9 +187,24 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace }) {
 
         {error ? <p className={styles.error}>{error}</p> : null}
 
-        <Button variant="ghost" size="lg" onClick={onReplace}>
-          Cambiar ejercicio
-        </Button>
+        <div className={styles.actions}>
+          <Button
+            variant="secondary"
+            size="lg"
+            icon={<X size={18} />}
+            onClick={onRemove}
+          >
+            Quitar
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            icon={<ArrowLeftRight size={18} />}
+            onClick={onReplace}
+          >
+            Cambiar ejercicio
+          </Button>
+        </div>
       </div>
     </Modal>
   );

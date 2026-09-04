@@ -10,6 +10,7 @@ import {
   EXERCISE_TYPE,
   splitSeconds,
 } from "@/lib/exercises";
+import { createId } from "@/lib/ids";
 import { NUMBER_FIELD, TEXT_FIELD } from "@/lib/inputAttrs";
 import styles from "./ExerciseEditor.module.css";
 
@@ -27,9 +28,21 @@ function valuesFromExercise(exercise) {
   };
 }
 
-export function ExerciseEditor({ exercise, onClose, onCreated }) {
+export function ExerciseEditor({ exercise, asStretch = false, onClose, onCreated }) {
   const { createExercise, updateExercise } = useArnold();
-  const [values, setValues] = useState(() => valuesFromExercise(exercise));
+  const [values, setValues] = useState(() =>
+    valuesFromExercise(
+      exercise ||
+        (asStretch
+          ? {
+              type: EXERCISE_TYPE.TIMED,
+              defaultSets: 2,
+              defaultDurationSeconds: 90,
+              restSeconds: 15,
+            }
+          : null),
+    ),
+  );
   const [error, setError] = useState("");
 
   function update(field, value) {
@@ -49,14 +62,15 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
       return;
     }
 
+    const type = asStretch ? EXERCISE_TYPE.TIMED : values.type;
     const payload = {
       name: values.name,
-      type: values.type,
+      type,
       defaultSets: Math.round(sets),
       restSeconds: Math.round(restSeconds),
     };
 
-    if (values.type === EXERCISE_TYPE.REPS) {
+    if (type === EXERCISE_TYPE.REPS) {
       const reps = Number(values.reps);
       if (!Number.isFinite(reps) || reps < 1) {
         setError("Las repeticiones deben ser un número positivo.");
@@ -72,9 +86,16 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
       };
     }
 
+    if (asStretch && !exercise) {
+      payload.id = `ex-elong-${createId()}`;
+    }
+
     const result = exercise
       ? updateExercise(exercise.id, payload)
-      : createExercise(payload);
+      : createExercise(
+          payload,
+          asStretch ? { notice: "Elongación creada" } : undefined,
+        );
 
     if (!result.ok) {
       setError(result.error);
@@ -90,7 +111,9 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
   return (
     <Modal
       open
-      title={exercise ? "Editar ejercicio" : "Nuevo ejercicio"}
+      title={
+        exercise ? "Editar ejercicio" : asStretch ? "Nueva elongación" : "Nuevo ejercicio"
+      }
       onClose={onClose}
       footer={
         <Button type="submit" size="lg" form="exercise-form">
@@ -107,35 +130,39 @@ export function ExerciseEditor({ exercise, onClose, onCreated }) {
             onChange={(event) => update("name", event.target.value)}
             required
             maxLength={80}
-            placeholder="Press banca plana con barra olímpica"
+            placeholder={
+              asStretch ? "Elongación de pecho" : "Press banca plana con barra olímpica"
+            }
           />
         </label>
 
-        <div>
-          <p className="sr-only">Tipo de ejercicio</p>
-          <div className={styles.types}>
-            <button
-              type="button"
-              className={styles.type}
-              aria-pressed={values.type === EXERCISE_TYPE.REPS}
-              onClick={() => update("type", EXERCISE_TYPE.REPS)}
-            >
-              <ListOrdered size={22} />
-              Series y repeticiones
-            </button>
-            <button
-              type="button"
-              className={styles.type}
-              aria-pressed={values.type === EXERCISE_TYPE.TIMED}
-              onClick={() => update("type", EXERCISE_TYPE.TIMED)}
-            >
-              <Watch size={22} />
-              Series por tiempo
-            </button>
+        {asStretch ? null : (
+          <div>
+            <p className="sr-only">Tipo de ejercicio</p>
+            <div className={styles.types}>
+              <button
+                type="button"
+                className={styles.type}
+                aria-pressed={values.type === EXERCISE_TYPE.REPS}
+                onClick={() => update("type", EXERCISE_TYPE.REPS)}
+              >
+                <ListOrdered size={22} />
+                Series y repeticiones
+              </button>
+              <button
+                type="button"
+                className={styles.type}
+                aria-pressed={values.type === EXERCISE_TYPE.TIMED}
+                onClick={() => update("type", EXERCISE_TYPE.TIMED)}
+              >
+                <Watch size={22} />
+                Series por tiempo
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
-        {values.type === EXERCISE_TYPE.REPS ? (
+        {values.type === EXERCISE_TYPE.REPS && !asStretch ? (
           <>
             <div className={styles.row3}>
               <label>

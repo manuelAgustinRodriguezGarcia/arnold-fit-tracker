@@ -68,7 +68,7 @@ export function HydrationStep({ onChange }) {
   }
 
   return (
-    <div className={`${styles.wrap} ${unitOpen ? styles.wrapOpen : ""}`}>
+    <div className={styles.wrap}>
       <GlassWater className={styles.hero} size={48} aria-hidden="true" />
 
       <div className={styles.field}>
