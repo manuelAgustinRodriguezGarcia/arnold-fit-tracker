@@ -14,11 +14,6 @@ import { getActivityByDay, getPeriodSessions } from "@/lib/exerciseStats";
 import styles from "./HomeView.module.css";
 
 const WEEKDAY_LABELS = getWeekdayShortLabels();
-const HARDCODED_WEEK_SECONDS = {
-  1: 6660,
-  2: 4920,
-  3: 6540,
-};
 
 function barDurationParts(seconds) {
   const total = Math.max(0, Math.round(Number(seconds) || 0));
@@ -85,15 +80,7 @@ export function HomeView({
 
 function WeeklySummary({ sessions }) {
   const range = getPeriodRange("week", 0);
-  const days = getActivityByDay(getPeriodSessions(sessions, "week", 0), range).map(
-    (day, index) => ({
-      ...day,
-      durationSeconds:
-        HARDCODED_WEEK_SECONDS[index] != null
-          ? HARDCODED_WEEK_SECONDS[index]
-          : day.durationSeconds,
-    }),
-  );
+  const days = getActivityByDay(getPeriodSessions(sessions, "week", 0), range);
   const max = Math.max(0, ...days.map((day) => day.durationSeconds));
 
   return (
