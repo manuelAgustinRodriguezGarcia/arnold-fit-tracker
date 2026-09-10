@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ChartNoAxesColumnIncreasing, Dumbbell, Plus, Settings } from "lucide-react";
 import { InstallPWA } from "@/components/install/InstallPWA";
 import { ActiveWorkoutCard } from "@/components/home/ActiveWorkoutCard";
@@ -82,6 +83,16 @@ function WeeklySummary({ sessions }) {
   const range = getPeriodRange("week", 0);
   const days = getActivityByDay(getPeriodSessions(sessions, "week", 0), range);
   const max = Math.max(0, ...days.map((day) => day.durationSeconds));
+  const [openKey, setOpenKey] = useState(null);
+
+  function onBarClick(day) {
+    const key = day.date.getTime();
+    if (day.durationSeconds <= 0) {
+      setOpenKey(null);
+      return;
+    }
+    setOpenKey((current) => (current === key ? null : key));
+  }
 
   return (
     <section className={styles.week} aria-label="Actividad de esta semana">
@@ -91,22 +102,40 @@ function WeeklySummary({ sessions }) {
       </div>
       <div className={styles.bars} role="list">
         {days.map((day, index) => {
+          const key = day.date.getTime();
           const trained = day.durationSeconds > 0;
+          const open = openKey === key;
           const height = max && trained ? Math.max(8, (day.durationSeconds / max) * 100) : 0;
           const name = getWeekdayName(day.date);
+          const routines = day.routineNames || [];
           return (
-            <div
-              key={day.date.getTime()}
+            <button
+              key={key}
+              type="button"
               className={styles.barCol}
               role="listitem"
+              aria-expanded={trained ? open : undefined}
               aria-label={
                 trained
-                  ? `${name}, ${formatDurationHuman(day.durationSeconds)}`
+                  ? `${name}, ${formatDurationHuman(day.durationSeconds)}${
+                      routines.length ? `, ${routines.join(", ")}` : ""
+                    }`
                   : `${name}, sin entrenamiento`
               }
+              onClick={() => onBarClick(day)}
             >
-              <div className={styles.barTrack}>
-                <div className={styles.barFill} style={{ height: `${height}%` }}>
+              <span
+                className={`${styles.barTip} ${open ? styles.barTipOpen : ""}`}
+                aria-hidden={!open}
+              >
+                {routines.map((routine) => (
+                  <span key={routine} className={styles.barTipLine}>
+                    {routine}
+                  </span>
+                ))}
+              </span>
+              <span className={styles.barTrack}>
+                <span className={styles.barFill} style={{ height: `${height}%` }}>
                   {trained ? (
                     <span className={styles.barTime} aria-hidden="true">
                       {barDurationParts(day.durationSeconds).map((part) => (
@@ -117,12 +146,12 @@ function WeeklySummary({ sessions }) {
                       ))}
                     </span>
                   ) : null}
-                </div>
-              </div>
+                </span>
+              </span>
               <span className={styles.barLabel} aria-hidden="true">
                 {WEEKDAY_LABELS[index]}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

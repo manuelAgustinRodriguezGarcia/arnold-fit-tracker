@@ -10,6 +10,7 @@ import { IconButton } from "@/components/ui/Button";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   DATE_LOCALE,
+  formatDurationHuman,
   formatMonthYear,
   getCalendarYearRange,
   getMonthCells,
@@ -194,7 +195,12 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     setPicker(null);
   }
 
-  const selectedNames = uniqueRoutineNames(sessionsByDay.get(selectedKey) || []);
+  const selectedSessions = sessionsByDay.get(selectedKey) || [];
+  const selectedNames = uniqueRoutineNames(selectedSessions);
+  const selectedDuration = selectedSessions.reduce(
+    (total, session) => total + (Number(session.durationSeconds) || 0),
+    0,
+  );
   const selectedDate = selectedKey
     ? new Date(`${selectedKey}T12:00:00`)
     : null;
@@ -299,7 +305,14 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
           </div>
 
           {expanded ? (
-            <p className={styles.caption}>{selectedCaption}</p>
+            <div className={styles.captionBlock}>
+              <p className={styles.caption}>{selectedCaption}</p>
+              {selectedDuration > 0 ? (
+                <p className={styles.captionDuration}>
+                  {formatDurationHuman(selectedDuration)}
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           {picker ? (
