@@ -5,7 +5,12 @@ import { ArrowLeftRight, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
-import { EXERCISE_TYPE, parseRepsInput } from "@/lib/exercises";
+import {
+  combineSeconds,
+  EXERCISE_TYPE,
+  parseRepsInput,
+  splitSeconds,
+} from "@/lib/exercises";
 import { NUMBER_FIELD } from "@/lib/inputAttrs";
 import { getMinSetCount } from "@/lib/workoutSets";
 import styles from "./ExerciseWorkoutEditor.module.css";
@@ -30,12 +35,26 @@ function draftsFromExercise(exercise) {
   }));
 }
 
+function paceFromExercise(exercise) {
+  const pace = exercise?.pacePhases;
+  const start = splitSeconds(pace?.startSeconds || 120);
+  const mid = splitSeconds(pace?.midSeconds || 120);
+  return {
+    paceEnabled: Boolean(pace),
+    startMinutes: String(start.minutes),
+    startSeconds: String(start.seconds),
+    midMinutes: String(mid.minutes),
+    midSeconds: String(mid.seconds),
+  };
+}
+
 export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }) {
   const { saveWorkoutExercise } = useArnold();
   const minSets = exercise ? getMinSetCount(exercise) : 1;
   const timed = exercise?.type === EXERCISE_TYPE.TIMED;
   const [count, setCount] = useState(() => String(exercise?.sets?.length || 1));
   const [drafts, setDrafts] = useState(() => draftsFromExercise(exercise));
+  const [pace, setPace] = useState(() => paceFromExercise(exercise));
   const [error, setError] = useState("");
 
   const visibleDrafts = useMemo(() => {
@@ -69,6 +88,11 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }
       next[index] = { ...next[index], [field]: value };
       return next;
     });
+    setError("");
+  }
+
+  function updatePace(field, value) {
+    setPace((current) => ({ ...current, [field]: value }));
     setError("");
   }
 
@@ -108,7 +132,20 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }
       }
     }
 
-    saveWorkoutExercise(exercise.workoutExerciseId, nextSets);
+    let pacePhases = null;
+    if (timed) {
+      if (pace.paceEnabled) {
+        const startSeconds = combineSeconds(pace.startMinutes, pace.startSeconds);
+        const midSeconds = combineSeconds(pace.midMinutes, pace.midSeconds);
+        if (startSeconds < 1 || midSeconds < 1) {
+          setError("Arranque y descanso deben ser mayores a 0.");
+          return;
+        }
+        pacePhases = { startSeconds, midSeconds };
+      }
+    }
+
+    saveWorkoutExercise(exercise.workoutExerciseId, nextSets, { pacePhases });
     onClose();
   }
 
@@ -185,6 +222,74 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }
           </div>
         ))}
 
+        {timed ? (
+          <div className={styles.pace}>
+            <button
+              type="button"
+              className={styles.paceToggle}
+              aria-pressed={pace.paceEnabled}
+              onClick={() => updatePace("paceEnabled", !pace.paceEnabled)}
+            >
+              Intervalos de arranque y descanso
+            </button>
+            {pace.paceEnabled ? (
+              <div className={styles.paceFields}>
+                <p className={styles.paceHint}>Al inicio y a la mitad del tiempo total</p>
+                <div className={styles.row}>
+                  <label>
+                    Arranque (min)
+                    <input
+                      {...NUMBER_FIELD}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={pace.startMinutes}
+                      onChange={(event) => updatePace("startMinutes", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Arranque (s)
+                    <input
+                      {...NUMBER_FIELD}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="59"
+                      value={pace.startSeconds}
+                      onChange={(event) => updatePace("startSeconds", event.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className={styles.row}>
+                  <label>
+                    Descanso (min)
+                    <input
+                      {...NUMBER_FIELD}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={pace.midMinutes}
+                      onChange={(event) => updatePace("midMinutes", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Descanso (s)
+                    <input
+                      {...NUMBER_FIELD}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="59"
+                      value={pace.midSeconds}
+                      onChange={(event) => updatePace("midSeconds", event.target.value)}
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {error ? <p className={styles.error}>{error}</p> : null}
 
         <div className={styles.actions}>
@@ -202,7 +307,7 @@ export function ExerciseWorkoutEditor({ exercise, onClose, onReplace, onRemove }
             icon={<ArrowLeftRight size={18} />}
             onClick={onReplace}
           >
-            Cambiar ejercicio
+            Cambiar
           </Button>
         </div>
       </div>

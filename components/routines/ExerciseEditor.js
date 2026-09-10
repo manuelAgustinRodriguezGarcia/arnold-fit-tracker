@@ -16,6 +16,9 @@ import styles from "./ExerciseEditor.module.css";
 
 function valuesFromExercise(exercise) {
   const duration = splitSeconds(exercise?.defaultDurationSeconds || 60);
+  const pace = exercise?.pacePhases;
+  const start = splitSeconds(pace?.startSeconds || 120);
+  const mid = splitSeconds(pace?.midSeconds || 120);
   return {
     name: exercise?.name || "",
     type: exercise?.type === EXERCISE_TYPE.TIMED ? EXERCISE_TYPE.TIMED : EXERCISE_TYPE.REPS,
@@ -25,6 +28,11 @@ function valuesFromExercise(exercise) {
     restSeconds: String(exercise?.restSeconds ?? 90),
     minutes: String(duration.minutes),
     seconds: String(duration.seconds),
+    paceEnabled: Boolean(pace),
+    startMinutes: String(start.minutes),
+    startSeconds: String(start.seconds),
+    midMinutes: String(mid.minutes),
+    midSeconds: String(mid.seconds),
   };
 }
 
@@ -84,6 +92,17 @@ export function ExerciseEditor({ exercise, asStretch = false, onClose, onCreated
         min: payload.defaultDurationSeconds,
         max: payload.defaultDurationSeconds,
       };
+      if (values.paceEnabled && !asStretch) {
+        const startSeconds = combineSeconds(values.startMinutes, values.startSeconds);
+        const midSeconds = combineSeconds(values.midMinutes, values.midSeconds);
+        if (startSeconds < 1 || midSeconds < 1) {
+          setError("Arranque y descanso deben ser mayores a 0.");
+          return;
+        }
+        payload.pacePhases = { startSeconds, midSeconds };
+      } else {
+        payload.pacePhases = null;
+      }
     }
 
     if (asStretch && !exercise) {
@@ -272,6 +291,73 @@ export function ExerciseEditor({ exercise, asStretch = false, onClose, onCreated
                 />
               </label>
             </div>
+            {!asStretch ? (
+              <div className={styles.pace}>
+                <button
+                  type="button"
+                  className={styles.paceToggle}
+                  aria-pressed={values.paceEnabled}
+                  onClick={() => update("paceEnabled", !values.paceEnabled)}
+                >
+                  Intervalos de arranque y descanso
+                </button>
+                {values.paceEnabled ? (
+                  <div className={styles.paceFields}>
+                    <p className={styles.paceHint}>Al inicio y a la mitad del tiempo total</p>
+                    <div className={styles.row}>
+                      <label>
+                        Arranque (min)
+                        <input
+                          {...NUMBER_FIELD}
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          value={values.startMinutes}
+                          onChange={(event) => update("startMinutes", event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Arranque (s)
+                        <input
+                          {...NUMBER_FIELD}
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          max="59"
+                          value={values.startSeconds}
+                          onChange={(event) => update("startSeconds", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <div className={styles.row}>
+                      <label>
+                        Descanso (min)
+                        <input
+                          {...NUMBER_FIELD}
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          value={values.midMinutes}
+                          onChange={(event) => update("midMinutes", event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Descanso (s)
+                        <input
+                          {...NUMBER_FIELD}
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          max="59"
+                          value={values.midSeconds}
+                          onChange={(event) => update("midSeconds", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </>
         )}
 

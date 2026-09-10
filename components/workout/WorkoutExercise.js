@@ -55,6 +55,7 @@ export function WorkoutExercise({
       exercise.type === EXERCISE_TYPE.TIMED ? (
         <TimedSetTimer
           timedTimer={timedTimer}
+          pacePhases={exercise.pacePhases}
           label={
             isStretchExercise(exercise) ? "Elongación en curso" : "Serie en curso"
           }

@@ -14,7 +14,9 @@
   transform-origin: left center;
   background: color-mix(in srgb, var(--accent) 42%, transparent);
   pointer-events: none;
-  transition: transform 250ms linear;
+  transition:
+    transform 250ms linear,
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .row {
@@ -67,6 +69,24 @@
   letter-spacing: 0.04em;
   color: var(--timer);
   line-height: 1.1;
+}
+
+.start {
+  background: color-mix(in srgb, var(--bronze-aged) 18%, var(--ivory));
+  border-color: color-mix(in srgb, var(--bronze-aged) 42%, var(--stone-taupe));
+}
+
+.start .fill {
+  background: color-mix(in srgb, var(--bronze-aged) 34%, transparent);
+}
+
+.mid {
+  background: color-mix(in srgb, var(--stone-gray) 14%, var(--ivory));
+  border-color: color-mix(in srgb, var(--stone-gray) 36%, var(--stone-taupe));
+}
+
+.mid .fill {
+  background: color-mix(in srgb, var(--stone-gray) 28%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

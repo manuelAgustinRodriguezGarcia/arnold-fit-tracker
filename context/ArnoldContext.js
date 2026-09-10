@@ -363,7 +363,7 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
-  const saveWorkoutExercise = useCallback((workoutExerciseId, nextSets) => {
+  const saveWorkoutExercise = useCallback((workoutExerciseId, nextSets, options = {}) => {
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
         return current;
@@ -374,6 +374,7 @@ export function ArnoldProvider({ children }) {
           current.activeWorkout,
           workoutExerciseId,
           nextSets,
+          options,
         ),
       };
     });
