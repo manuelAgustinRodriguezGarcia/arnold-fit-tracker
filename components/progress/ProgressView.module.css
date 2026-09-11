@@ -11,12 +11,6 @@
   animation: fadeView 220ms var(--ease-out);
 }
 
-.viewOpen {
-  height: var(--progress-frame);
-  min-height: var(--progress-frame);
-  overflow: hidden;
-}
-
 .centered {
   min-height: var(--progress-frame);
   align-content: start;

@@ -23,8 +23,6 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
   const { sessions } = useArnold();
   const [period, setPeriod] = useState("week");
   const [offset, setOffset] = useState(0);
-  const [calendarExpanded, setCalendarExpanded] = useState(false);
-  const [calendarViewLocked, setCalendarViewLocked] = useState(false);
 
   const range = getPeriodRange(period, offset);
   const periodSessions = useMemo(
@@ -40,17 +38,8 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
   );
 
   return (
-    <section
-      className={`${styles.view} ${ordered.length === 0 ? styles.centered : ""} ${
-        calendarViewLocked ? styles.viewOpen : ""
-      }`}
-    >
-      <ProgressCalendar
-        sessions={sessions}
-        expanded={calendarExpanded}
-        onExpandedChange={setCalendarExpanded}
-        onViewLockChange={setCalendarViewLocked}
-      />
+    <section className={`${styles.view} ${ordered.length === 0 ? styles.centered : ""}`}>
+      <ProgressCalendar sessions={sessions} />
       {ordered.length === 0 ? (
         <EmptyState
           icon={<ChartNoAxesColumnIncreasing size={28} />}

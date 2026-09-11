@@ -1,13 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { Flip } from "gsap/Flip";
-import { ChevronDown, ChevronLeft, ChevronRight, Dumbbell, Maximize2, SportShoe, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, Dumbbell, SportShoe, X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
-import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   DATE_LOCALE,
   formatDurationHuman,
@@ -21,11 +16,10 @@ import {
 import { getSessionActivityFlags } from "@/lib/workout";
 import styles from "./ProgressCalendar.module.css";
 
-gsap.registerPlugin(useGSAP, Flip);
-
 const MONTH_NAMES = getMonthNames("long");
 const MONTH_SHORT = getMonthNames("short");
 const WEEKDAYS = getWeekdayShortLabels();
+const PICKER_MS = 220;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -50,17 +44,16 @@ function uniqueRoutineNames(daySessions) {
   return names;
 }
 
-export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewLockChange }) {
+export function ProgressCalendar({ sessions }) {
   const todayKey = localDateKey(new Date());
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth());
-  const [picker, setPicker] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerClosing, setPickerClosing] = useState(false);
   const [selectedKey, setSelectedKey] = useState(todayKey);
-  const shellRef = useRef(null);
-  const slotRef = useRef(null);
-  const flipTweenRef = useRef(null);
   const selectedYearRef = useRef(null);
-  const [covering, setCovering] = useState(false);
+  const pickerExitRef = useRef(0);
 
   const cells = useMemo(() => getMonthCells(year, month), [year, month]);
   const years = useMemo(() => {
@@ -100,6 +93,9 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewL
         hasStrength = hasStrength || flags.hasStrength;
         hasCardio = hasCardio || flags.hasCardio;
       }
+      if (!hasStrength && !hasCardio && list.length > 0) {
+        hasStrength = true;
+      }
       map.set(key, { hasStrength, hasCardio });
     }
     return map;
@@ -107,107 +103,76 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewL
 
   const monthLabel = formatMonthYear(year, month);
 
-  useBodyScrollLock(covering);
-
-  useGSAP({ scope: shellRef });
-
-  const toggleExpanded = useCallback(
-    (next = !expanded) => {
-      if (next === expanded) {
-        return;
-      }
-
-      const shell = shellRef.current;
-      const slot = slotRef.current;
-      const animate = !prefersReducedMotion() && shell;
-
-      flipTweenRef.current?.kill();
-      flipTweenRef.current = null;
-
-      if (next && slot && shell) {
-        slot.style.height = `${shell.getBoundingClientRect().height}px`;
-      }
-
-      const state = animate ? Flip.getState(shell) : null;
-
-      flushSync(() => {
-        if (next) {
-          setCovering(true);
-          onViewLockChange?.(true);
-        }
-        onExpandedChange(next);
-        if (!next) {
-          setPicker(null);
-        }
-      });
-
-      const releaseCollapse = () => {
-        if (slot) {
-          slot.style.height = "";
-        }
-        setCovering(false);
-        onViewLockChange?.(false);
-      };
-
-      if (!state) {
-        if (!next) {
-          releaseCollapse();
-        }
-        return;
-      }
-
-      flipTweenRef.current = Flip.from(state, {
-        duration: next ? 0.42 : 0.32,
-        ease: "power2.inOut",
-        absolute: true,
-        nested: true,
-        onComplete: () => {
-          flipTweenRef.current = null;
-          if (!next) {
-            releaseCollapse();
-          }
-        },
-      });
-    },
-    [expanded, onExpandedChange, onViewLockChange],
-  );
-
   useEffect(() => {
     return () => {
-      flipTweenRef.current?.kill();
-      flipTweenRef.current = null;
+      if (pickerExitRef.current) {
+        window.clearTimeout(pickerExitRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
-    if (picker !== "year" || !selectedYearRef.current) {
+    if (pickerOpen) {
+      if (pickerExitRef.current) {
+        window.clearTimeout(pickerExitRef.current);
+        pickerExitRef.current = 0;
+      }
+      setPickerVisible(true);
+      setPickerClosing(false);
       return undefined;
     }
-    selectedYearRef.current.scrollIntoView({ block: "center" });
-    return undefined;
-  }, [picker, year]);
+
+    if (!pickerVisible) {
+      return undefined;
+    }
+
+    if (prefersReducedMotion()) {
+      setPickerVisible(false);
+      setPickerClosing(false);
+      return undefined;
+    }
+
+    setPickerClosing(true);
+    pickerExitRef.current = window.setTimeout(() => {
+      setPickerVisible(false);
+      setPickerClosing(false);
+      pickerExitRef.current = 0;
+    }, PICKER_MS);
+
+    return () => {
+      if (pickerExitRef.current) {
+        window.clearTimeout(pickerExitRef.current);
+        pickerExitRef.current = 0;
+      }
+    };
+  }, [pickerOpen, pickerVisible]);
 
   useEffect(() => {
-    if (!expanded && !picker) {
+    if (!pickerVisible || pickerClosing || !selectedYearRef.current) {
+      return undefined;
+    }
+    selectedYearRef.current.scrollIntoView({ block: "nearest", inline: "center" });
+    return undefined;
+  }, [pickerVisible, pickerClosing, year]);
+
+  useEffect(() => {
+    if (!pickerOpen) {
       return undefined;
     }
 
     function onKeyDown(event) {
-      if (event.key !== "Escape") {
-        return;
-      }
-      if (picker) {
-        setPicker(null);
-        return;
-      }
-      if (expanded) {
-        toggleExpanded(false);
+      if (event.key === "Escape") {
+        setPickerOpen(false);
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [expanded, picker, toggleExpanded]);
+  }, [pickerOpen]);
+
+  function closePicker() {
+    setPickerOpen(false);
+  }
 
   function onDayClick(cell) {
     setSelectedKey(cell.key);
@@ -215,26 +180,13 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewL
       setYear(cell.year);
       setMonth(cell.month);
     }
-    if (!expanded) {
-      toggleExpanded(true);
-    }
-  }
-
-  function onShellPointerUp(event) {
-    if (expanded || picker) {
-      return;
-    }
-    if (event.target.closest("[data-calendar-chrome]")) {
-      return;
-    }
-    toggleExpanded(true);
   }
 
   function shiftMonth(delta) {
     const next = new Date(year, month + delta, 1);
     setYear(next.getFullYear());
     setMonth(next.getMonth());
-    setPicker(null);
+    closePicker();
   }
 
   const selectedSessions = sessionsByDay.get(selectedKey) || [];
@@ -254,206 +206,140 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewL
     : "";
 
   return (
-    <div className={styles.slot} ref={slotRef}>
-      <div
-        ref={shellRef}
-        className={`${styles.shell} ${expanded ? styles.expanded : ""}`}
-        role="region"
-        aria-label={`Calendario ${monthLabel}`}
-        onPointerUp={onShellPointerUp}
-      >
-        <div
-          className={styles.header}
-          data-calendar-chrome
-          onPointerUp={(event) => event.stopPropagation()}
+    <div className={styles.shell} role="region" aria-label={`Calendario ${monthLabel}`}>
+      <div className={styles.header}>
+        <IconButton label="Mes anterior" onClick={() => shiftMonth(-1)}>
+          <ChevronLeft size={20} />
+        </IconButton>
+        <button
+          type="button"
+          className={`${styles.selector} ${styles.monthSelector} ${
+            pickerOpen || pickerVisible ? styles.selectorOpen : ""
+          }`}
+          aria-haspopup="dialog"
+          aria-expanded={pickerOpen}
+          onClick={() => setPickerOpen((current) => !current)}
         >
-          <IconButton label="Mes anterior" onClick={() => shiftMonth(-1)}>
-            <ChevronLeft size={20} />
-          </IconButton>
-          <button
-            type="button"
-            className={`${styles.selector} ${styles.monthSelector} ${
-              picker === "month" ? styles.selectorOpen : ""
-            }`}
-            aria-haspopup="listbox"
-            aria-expanded={picker === "month"}
-            onClick={() => setPicker((current) => (current === "month" ? null : "month"))}
-          >
-            <span>{MONTH_NAMES[month]}</span>
-            <ChevronDown size={16} aria-hidden="true" />
-          </button>
-          <IconButton label="Mes siguiente" onClick={() => shiftMonth(1)}>
-            <ChevronRight size={20} />
-          </IconButton>
+          <span>
+            {MONTH_NAMES[month]} {year}
+          </span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </button>
+        <IconButton label="Mes siguiente" onClick={() => shiftMonth(1)}>
+          <ChevronRight size={20} />
+        </IconButton>
+      </div>
+
+      <div className={styles.body}>
+        <div className={styles.weekdays} aria-hidden="true">
+          {WEEKDAYS.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
 
-        <div className={styles.body}>
-          <div className={styles.weekdays} aria-hidden="true">
-            {WEEKDAYS.map((label) => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
+        <div className={styles.grid} role="grid" aria-label={monthLabel}>
+          {cells.map((cell) => {
+            const count = counts.get(cell.key) || 0;
+            const activity = activities.get(cell.key) || {
+              hasStrength: false,
+              hasCardio: false,
+            };
+            const names = uniqueRoutineNames(sessionsByDay.get(cell.key) || []);
+            const selected = cell.key === selectedKey;
+            const today = cell.key === todayKey;
+            const activityLabels = [
+              activity.hasStrength ? "pesas" : null,
+              activity.hasCardio ? "cardio" : null,
+            ].filter(Boolean);
+            return (
+              <button
+                key={cell.key}
+                type="button"
+                role="gridcell"
+                className={`${styles.day} ${cell.outside ? styles.outside : ""} ${
+                  today ? styles.today : ""
+                } ${selected ? styles.selected : ""} ${count ? styles.trained : ""}`}
+                aria-current={today ? "date" : undefined}
+                aria-selected={selected}
+                aria-label={`${cell.day} de ${MONTH_NAMES[cell.month]}${
+                  names.length ? `, ${names.join(", ")}` : ""
+                }${activityLabels.length ? `, ${activityLabels.join(" y ")}` : ""}`}
+                onClick={() => onDayClick(cell)}
+              >
+                <span className={styles.dayNumber}>{cell.day}</span>
+                {activity.hasStrength || activity.hasCardio ? (
+                  <span className={styles.dayIcons} aria-hidden="true">
+                    {activity.hasStrength ? (
+                      <span className={styles.dayIcon}>
+                        <Dumbbell size={12} strokeWidth={2.4} />
+                      </span>
+                    ) : null}
+                    {activity.hasCardio ? (
+                      <span className={styles.dayIcon}>
+                        <SportShoe size={12} strokeWidth={2.4} />
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
 
-          <div className={styles.grid} role="grid" aria-label={monthLabel}>
-            {cells.map((cell) => {
-              const count = counts.get(cell.key) || 0;
-              const activity = activities.get(cell.key) || {
-                hasStrength: false,
-                hasCardio: false,
-              };
-              const names = uniqueRoutineNames(sessionsByDay.get(cell.key) || []);
-              const selected = cell.key === selectedKey;
-              const today = cell.key === todayKey;
-              const activityLabels = [
-                activity.hasStrength ? "pesas" : null,
-                activity.hasCardio ? "cardio" : null,
-              ].filter(Boolean);
-              return (
+        {pickerVisible ? (
+          <div
+            className={`${styles.picker} ${pickerClosing ? styles.pickerOut : styles.pickerIn}`}
+            role="dialog"
+            aria-label="Elegir mes y año"
+            aria-hidden={pickerClosing || undefined}
+          >
+            <div className={styles.pickerHead}>
+              <h3>Mes y año</h3>
+              <IconButton label="Cerrar selector" onClick={closePicker}>
+                <X size={18} />
+              </IconButton>
+            </div>
+            <div className={styles.yearRow} role="listbox" aria-label="Año">
+              {years.map((item) => (
                 <button
-                  key={cell.key}
+                  key={item}
                   type="button"
-                  role="gridcell"
-                  className={`${styles.day} ${cell.outside ? styles.outside : ""} ${
-                    today ? styles.today : ""
-                  } ${selected ? styles.selected : ""} ${count ? styles.trained : ""}`}
-                  aria-current={today ? "date" : undefined}
-                  aria-selected={selected}
-                  aria-label={`${cell.day} de ${MONTH_NAMES[cell.month]}${
-                    names.length ? `, ${names.join(", ")}` : ""
-                  }${activityLabels.length ? `, ${activityLabels.join(" y ")}` : ""}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDayClick(cell);
+                  role="option"
+                  aria-selected={item === year}
+                  className={styles.yearChip}
+                  ref={item === year ? selectedYearRef : undefined}
+                  onClick={() => setYear(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <div className={styles.monthList} role="listbox" aria-label="Mes">
+              {MONTH_SHORT.map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="option"
+                  aria-selected={index === month}
+                  className={styles.option}
+                  onClick={() => {
+                    setMonth(index);
+                    closePicker();
                   }}
                 >
-                  <span className={styles.dayNumber}>{cell.day}</span>
-                  {activity.hasStrength || activity.hasCardio ? (
-                    <span className={styles.dayIcons} aria-hidden="true">
-                      {activity.hasStrength ? (
-                        <span className={styles.dayIcon}>
-                          <Dumbbell size={11} strokeWidth={2.4} />
-                        </span>
-                      ) : null}
-                      {activity.hasCardio ? (
-                        <span className={styles.dayIcon}>
-                          <SportShoe size={11} strokeWidth={2.4} />
-                        </span>
-                      ) : null}
-                    </span>
-                  ) : null}
+                  {label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
+        ) : null}
+      </div>
 
-          {expanded ? (
-            <div className={styles.captionBlock}>
-              <p className={styles.caption}>{selectedCaption}</p>
-              {selectedDuration > 0 ? (
-                <p className={styles.captionDuration}>
-                  {formatDurationHuman(selectedDuration)}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-
-          {picker ? (
-            <div
-              className={styles.picker}
-              data-calendar-chrome
-              onPointerUp={(event) => event.stopPropagation()}
-            >
-              <div className={styles.pickerHead}>
-                <h3>{picker === "month" ? "Mes" : "Año"}</h3>
-                <IconButton label="Cerrar selector" onClick={() => setPicker(null)}>
-                  <X size={18} />
-                </IconButton>
-              </div>
-              {picker === "month" ? (
-                <div className={styles.monthList} role="listbox" aria-label="Mes">
-                  {MONTH_SHORT.map((label, index) => (
-                    <button
-                      key={label}
-                      type="button"
-                      role="option"
-                      aria-selected={index === month}
-                      className={styles.option}
-                      onClick={() => {
-                        setMonth(index);
-                        setPicker(null);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.yearList} role="listbox" aria-label="Año">
-                  {years.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      role="option"
-                      aria-selected={item === year}
-                      className={styles.yearOption}
-                      ref={item === year ? selectedYearRef : undefined}
-                      onClick={() => {
-                        setYear(item);
-                        setPicker(null);
-                      }}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>
-
-        <div
-          className={styles.footer}
-          data-calendar-chrome
-          onPointerUp={(event) => event.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={`${styles.selector} ${styles.yearSelector} ${
-              picker === "year" ? styles.selectorOpen : ""
-            }`}
-            aria-haspopup="listbox"
-            aria-expanded={picker === "year"}
-            onClick={() => setPicker((current) => (current === "year" ? null : "year"))}
-          >
-            <span>{year}</span>
-            <ChevronDown size={16} aria-hidden="true" />
-          </button>
-          {expanded ? (
-            <IconButton
-              className={styles.expandButton}
-              label="Cerrar calendario"
-              aria-expanded="true"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleExpanded(false);
-              }}
-            >
-              <X size={20} />
-            </IconButton>
-          ) : (
-            <IconButton
-              className={styles.expandButton}
-              label="Ampliar calendario"
-              aria-expanded="false"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleExpanded(true);
-              }}
-            >
-              <Maximize2 size={18} />
-            </IconButton>
-          )}
-        </div>
+      <div className={styles.footer}>
+        <p className={styles.caption}>{selectedCaption}</p>
+        {selectedDuration > 0 ? (
+          <p className={styles.captionDuration}>{formatDurationHuman(selectedDuration)}</p>
+        ) : null}
       </div>
     </div>
   );
