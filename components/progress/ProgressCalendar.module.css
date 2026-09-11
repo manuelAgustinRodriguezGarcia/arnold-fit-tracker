@@ -1,4 +1,5 @@
 .slot {
+  position: relative;
   width: 100%;
 }
 
@@ -14,8 +15,7 @@
   background: var(--ivory);
   box-shadow: var(--shadow-card);
   color: var(--charcoal);
-  overflow: hidden;
-  overscroll-behavior: contain;
+  overflow: clip;
 }
 
 .expanded {
@@ -177,7 +177,9 @@
 .expanded .day {
   min-height: var(--touch);
   font-size: 1.05rem;
-  gap: 4px;
+  gap: 3px;
+  padding: 6px 4px;
+  overflow: hidden;
 }
 
 .dayNumber {
@@ -189,26 +191,18 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
+  max-width: 100%;
 }
 
 .dayIcon {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
   border-radius: 999px;
   background: var(--accent);
   color: var(--on-accent);
-}
-
-.expanded .dayIcon {
-  width: 20px;
-  height: 20px;
-}
-
-.expanded .dayIcon svg {
-  width: 12px;
-  height: 12px;
 }
 
 .selected .dayIcon {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   BatteryFull,
   BatteryLow,
@@ -21,16 +21,33 @@ import { ExerciseEditor } from "@/components/routines/ExerciseEditor";
 import { ExerciseSelector } from "@/components/routines/ExerciseSelector";
 import { ExerciseWorkoutEditor } from "@/components/workout/ExerciseWorkoutEditor";
 import { HydrationStep } from "@/components/workout/HydrationStep";
-import { RestTimerSlot } from "@/components/workout/RestTimerPill";
+import { TimedSetOverlay } from "@/components/workout/TimedSetOverlay";
+import { RestOverlay } from "@/components/workout/RestOverlay";
+import { WorkoutCompleteSheet } from "@/components/workout/WorkoutCompleteSheet";
 import { WorkoutExercise } from "@/components/workout/WorkoutExercise";
 import { useArnold } from "@/hooks/useArnold";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useWorkoutExerciseReorder } from "@/hooks/useWorkoutExerciseReorder";
 import { useWorkoutTimer } from "@/hooks/useWorkoutTimer";
 import { EXERCISE_TYPE } from "@/lib/exercises";
+import { isLongestDurationSession } from "@/lib/exerciseStats";
 import { isStretchExercise, STRETCH_PRESETS } from "@/lib/stretchPresets";
+import { normalizeAppearance, normalizeThemePalette } from "@/lib/themes";
 import { FATIGUE, WORKOUT_STATUS } from "@/lib/workout";
 import { isExerciseComplete } from "@/lib/workoutSets";
 import styles from "./WorkoutScreen.module.css";
+
+function timedLogoForce(settings) {
+  const palette = normalizeThemePalette(settings?.themePalette);
+  const appearance = normalizeAppearance(settings?.appearance);
+  if (palette === "neon") {
+    return null;
+  }
+  if (palette === "stone" && appearance !== "dark") {
+    return "classic-dark";
+  }
+  return "classic-light";
+}
 
 const FATIGUE_OPTIONS = [
   {
@@ -65,17 +82,20 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   const {
     exercises: libraryExercises,
     activeWorkout,
+    sessions,
+    settings,
     pauseActiveWorkout,
     resumeActiveWorkout,
     toggleSetDone,
-    beginTimedSet,
     markCurrentExercise,
     swapWorkoutExercise,
     finishWorkout,
     addExerciseToActiveWorkout,
     removeExerciseFromActiveWorkout,
+    reorderActiveWorkoutExercises,
   } = useArnold();
   const { display } = useWorkoutTimer(activeWorkout);
+  const listRef = useRef(null);
   const [fatigueOpen, setFatigueOpen] = useState(false);
   const [hydrationOpen, setHydrationOpen] = useState(false);
   const [pendingFatigue, setPendingFatigue] = useState(null);
@@ -89,7 +109,10 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   const [finishPhase, setFinishPhase] = useState(null);
   const [addingOpen, setAddingOpen] = useState(false);
   const [exerciseCreatorOpen, setExerciseCreatorOpen] = useState(false);
-  useBodyScrollLock(Boolean(activeWorkout));
+  const [timedSession, setTimedSession] = useState(null);
+  const [completeSession, setCompleteSession] = useState(null);
+  const [isDurationRecord, setIsDurationRecord] = useState(false);
+  useBodyScrollLock(Boolean(activeWorkout) || Boolean(completeSession));
 
   const stretchItems = useMemo(() => {
     const presetIds = STRETCH_PRESETS.map((preset) => preset.id);
@@ -136,15 +159,37 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   const showFinalFinish =
     finishPhase === "ready" || (isStretching && finishStretchesDone);
 
-  if (!activeWorkout) {
-    return null;
-  }
+  const visibleOrderedIds = useMemo(
+    () => visibleExercises.map((exercise) => exercise.workoutExerciseId),
+    [visibleExercises],
+  );
 
-  const paused = activeWorkout.status === WORKOUT_STATUS.PAUSED;
+  const { draggingId, onPointerDown, isDragging } = useWorkoutExerciseReorder({
+    listRef,
+    orderedIds: visibleOrderedIds,
+    onReorder: reorderActiveWorkoutExercises,
+    enabled: !timedSession && !activeWorkout?.restTimer && visibleExercises.length > 1,
+  });
 
   function onToggleSet(exercise, set) {
     if (exercise.type === EXERCISE_TYPE.TIMED && !set.completed) {
-      beginTimedSet(exercise.workoutExerciseId, set.id);
+      const active = activeWorkout.timedTimer;
+      const saved = activeWorkout.timedTimers?.[set.id];
+      const isActive =
+        active?.setId === set.id &&
+        active?.workoutExerciseId === exercise.workoutExerciseId;
+      const isPaused =
+        !isActive &&
+        (activeWorkout.pausedTimedSetId === set.id ||
+          Number(saved?.remainingMs) > 0);
+
+      setTimedSession({
+        workoutExerciseId: exercise.workoutExerciseId,
+        setId: set.id,
+        name: exercise.name,
+        isStretch: isStretchExercise(exercise),
+        startPhase: isActive ? "running" : isPaused ? "paused" : "countdown",
+      });
       return;
     }
     toggleSetDone(exercise.workoutExerciseId, set.id);
@@ -236,8 +281,15 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     setSelectedStretchIds([]);
     setFinishStretchIds([]);
     if (saved) {
-      onFinished();
+      setIsDurationRecord(isLongestDurationSession(saved, sessions));
+      setCompleteSession(saved);
     }
+  }
+
+  function closeCompleteSheet() {
+    setCompleteSession(null);
+    setIsDurationRecord(false);
+    onFinished();
   }
 
   function toggleStretch(exerciseId) {
@@ -251,112 +303,163 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     );
   }
 
+  if (completeSession) {
+    return (
+      <WorkoutCompleteSheet
+        session={completeSession}
+        isDurationRecord={isDurationRecord}
+        onClose={closeCompleteSheet}
+      />
+    );
+  }
+
+  if (!activeWorkout) {
+    return null;
+  }
+
+  const paused = activeWorkout.status === WORKOUT_STATUS.PAUSED;
+  const focusOverlay = Boolean(timedSession || activeWorkout.restTimer);
+
   return (
-    <section className={styles.screen}>
-      <header className={styles.header}>
-        <IconButton label="Volver" onClick={onMinimize}>
-          <ChevronLeft size={22} />
-        </IconButton>
-        <BrandMark />
+    <section
+      className={`${styles.screen} ${focusOverlay ? styles.screenTimed : ""}`}
+    >
+      <header
+        className={`${styles.header} ${focusOverlay ? styles.headerTimed : ""}`}
+      >
+        {focusOverlay ? (
+          <span className={styles.headerSpacer} aria-hidden="true" />
+        ) : (
+          <IconButton label="Volver" onClick={onMinimize}>
+            <ChevronLeft size={22} />
+          </IconButton>
+        )}
+        <BrandMark
+          force={focusOverlay ? timedLogoForce(settings) : null}
+          inverted={focusOverlay}
+        />
+        <span className={styles.headerSpacer} aria-hidden="true" />
       </header>
 
-      <div className={styles.body}>
-        <ul className={styles.exercises}>
-        {visibleExercises.map((exercise) => (
-          <li key={`${exercise.workoutExerciseId}:${exercise.exerciseId || exercise.name}`}>
-            <WorkoutExercise
-              exercise={exercise}
-              current={activeWorkout.currentExerciseId === exercise.workoutExerciseId}
-              timedTimer={activeWorkout.timedTimer}
-              onToggleSet={onToggleSet}
-              onEdit={() => {
-                markCurrentExercise(exercise.workoutExerciseId);
-                setEditing(exercise.workoutExerciseId);
-              }}
-            />
+      <div className={styles.stage}>
+        {timedSession ? (
+          <TimedSetOverlay
+            key={`${timedSession.workoutExerciseId}:${timedSession.setId}`}
+            session={timedSession}
+            onClose={() => setTimedSession(null)}
+          />
+        ) : null}
+
+        <RestOverlay restTimer={activeWorkout.restTimer} />
+
+        <div className={styles.body}>
+          <ul
+            ref={listRef}
+            className={`${styles.exercises} ${isDragging ? styles.exercisesDragging : ""}`}
+          >
+          {visibleExercises.map((exercise) => (
+            <li
+              key={`${exercise.workoutExerciseId}:${exercise.exerciseId || exercise.name}`}
+              data-exercise-row
+              data-exercise-id={exercise.workoutExerciseId}
+              className={`${styles.exerciseRow} ${
+                draggingId === exercise.workoutExerciseId ? styles.exerciseDragging : ""
+              }`}
+              onPointerDown={(event) =>
+                onPointerDown(event, exercise.workoutExerciseId)
+              }
+            >
+              <WorkoutExercise
+                exercise={exercise}
+                current={activeWorkout.currentExerciseId === exercise.workoutExerciseId}
+                onToggleSet={onToggleSet}
+                onEdit={() => {
+                  markCurrentExercise(exercise.workoutExerciseId);
+                  setEditing(exercise.workoutExerciseId);
+                }}
+              />
+            </li>
+          ))}
+          <li className={styles.endActions}>
+            {isStretching ? (
+              <Button
+                variant="secondary"
+                size="lg"
+                icon={<Plus size={18} />}
+                onClick={openAddStretch}
+              >
+                Agregar elongación
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="lg"
+                icon={<Plus size={18} />}
+                onClick={() => setAddingOpen(true)}
+              >
+                Agregar ejercicio
+              </Button>
+            )}
           </li>
-        ))}
-        <li className={styles.endActions}>
-          {isStretching ? (
-            <Button
-              variant="secondary"
-              size="lg"
-              icon={<Plus size={18} />}
-              onClick={openAddStretch}
-            >
-              Agregar elongación
-            </Button>
+        </ul>
+        </div>
+
+        <div className={styles.controls}>
+          {showFinalFinish ? (
+            <>
+              <span className={styles.controlsSpacer} aria-hidden="true" />
+              <p className={styles.timer} aria-live="polite">{display}</p>
+              <Button size="lg" variant="danger" icon={<Square size={16} />} onClick={() => setFatigueOpen(true)}>
+                FINALIZAR
+              </Button>
+            </>
+          ) : isStretching ? (
+            <>
+              {paused ? (
+                <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
+                  Reanudar
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  icon={<Pause size={18} />}
+                  onClick={pauseActiveWorkout}
+                >
+                  Pausar
+                </Button>
+              )}
+              <p className={styles.timer} aria-live="polite">{display}</p>
+              <span className={styles.controlsSpacer} aria-hidden="true" />
+            </>
           ) : (
-            <Button
-              variant="secondary"
-              size="lg"
-              icon={<Plus size={18} />}
-              onClick={() => setAddingOpen(true)}
-            >
-              Agregar ejercicio
-            </Button>
+            <>
+              {paused ? (
+                <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
+                  Reanudar
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  icon={<Pause size={18} />}
+                  onClick={pauseActiveWorkout}
+                >
+                  Pausar
+                </Button>
+              )}
+              <p className={styles.timer} aria-live="polite">{display}</p>
+              <Button
+                variant="danger"
+                size="lg"
+                icon={<Square size={16} />}
+                onClick={startFinishFlow}
+              >
+                Finalizar
+              </Button>
+            </>
           )}
-        </li>
-      </ul>
-      </div>
-
-      <RestTimerSlot restTimer={activeWorkout.restTimer} className={styles.restSlot} />
-
-      <div className={styles.controls}>
-        {showFinalFinish ? (
-          <>
-            <span className={styles.controlsSpacer} aria-hidden="true" />
-            <p className={styles.timer} aria-live="polite">{display}</p>
-            <Button size="lg" variant="danger" icon={<Square size={16} />} onClick={() => setFatigueOpen(true)}>
-              FINALIZAR
-            </Button>
-          </>
-        ) : isStretching ? (
-          <>
-            {paused ? (
-              <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
-                Reanudar
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="lg"
-                icon={<Pause size={18} />}
-                onClick={pauseActiveWorkout}
-              >
-                Pausar
-              </Button>
-            )}
-            <p className={styles.timer} aria-live="polite">{display}</p>
-            <span className={styles.controlsSpacer} aria-hidden="true" />
-          </>
-        ) : (
-          <>
-            {paused ? (
-              <Button size="lg" icon={<Play size={18} />} onClick={resumeActiveWorkout}>
-                Reanudar
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="lg"
-                icon={<Pause size={18} />}
-                onClick={pauseActiveWorkout}
-              >
-                Pausar
-              </Button>
-            )}
-            <p className={styles.timer} aria-live="polite">{display}</p>
-            <Button
-              variant="danger"
-              size="lg"
-              icon={<Square size={16} />}
-              onClick={startFinishFlow}
-            >
-              Finalizar
-            </Button>
-          </>
-        )}
+        </div>
       </div>
 
       <Modal
@@ -384,14 +487,14 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         title="Cantidad de agua tomada"
         onClose={() => completeFinish(null)}
         footer={
-          <>
+          <div className={styles.stretchFooter}>
             <Button size="lg" onClick={() => completeFinish(waterMl)}>
               Continuar
             </Button>
             <Button variant="secondary" size="lg" onClick={() => completeFinish(null)}>
               Omitir
             </Button>
-          </>
+          </div>
         }
       >
         <HydrationStep key={pendingFatigue || "water"} onChange={setWaterMl} />

@@ -27,9 +27,27 @@ export function Logo({
   size,
   alt = "Arnold",
   className = "",
+  force = null,
 }) {
   const resolvedHeight = size || height;
   const width = Math.round(resolvedHeight * WORDMARK_RATIO);
+
+  if (force === "classic-light" || force === "classic-dark") {
+    const src =
+      force === "classic-dark"
+        ? PALETTE_WORDMARKS.classic.dark
+        : PALETTE_WORDMARKS.classic.light;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={resolvedHeight}
+        decoding="async"
+        className={className}
+      />
+    );
+  }
 
   if (variant === "mark") {
     return (

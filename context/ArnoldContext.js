@@ -10,6 +10,7 @@ import {
 import { createId } from "@/lib/ids";
 import { createExerciseRecord, findExerciseById } from "@/lib/exercises";
 import { applyThemeAttributes, normalizeAppearance, normalizeThemePalette } from "@/lib/themes";
+import { normalizeBottleCapacityMl } from "@/lib/hydration";
 import {
   adjustRestTimer,
   applyResizeSets,
@@ -22,8 +23,10 @@ import {
   createActiveWorkout,
   createSession,
   clearTimedTimer,
+  freezeTimedTimer,
   pauseWorkout as pauseWorkoutState,
   removeExerciseFromWorkout,
+  reorderWorkoutExercises,
   replaceWorkoutExercise,
   resetTimedSet,
   resumeWorkout as resumeWorkoutState,
@@ -354,6 +357,9 @@ export function ArnoldProvider({ children }) {
         ...(Object.prototype.hasOwnProperty.call(patch || {}, "appearance")
           ? { appearance: normalizeAppearance(patch.appearance) }
           : {}),
+        ...(Object.prototype.hasOwnProperty.call(patch || {}, "bottleCapacityMl")
+          ? { bottleCapacityMl: normalizeBottleCapacityMl(patch.bottleCapacityMl) }
+          : {}),
       };
       applyThemeAttributes(nextSettings.themePalette, nextSettings.appearance);
       return {
@@ -429,6 +435,21 @@ export function ArnoldProvider({ children }) {
     },
     [showNotice],
   );
+
+  const reorderActiveWorkoutExercises = useCallback((visibleOrderedIds) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      const next = reorderWorkoutExercises(
+        current.activeWorkout,
+        visibleOrderedIds,
+      );
+      return next === current.activeWorkout
+        ? current
+        : { ...current, activeWorkout: next };
+    });
+  }, []);
 
   const changeWorkoutSetCount = useCallback((workoutExerciseId, nextCount) => {
     updateArnoldStore((current) => {
@@ -555,6 +576,35 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
+  const pauseTimedSetTimer = useCallback(() => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout?.timedTimer) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: freezeTimedTimer(current.activeWorkout, new Date()),
+      };
+    });
+  }, []);
+
+  const resumeTimedSetTimer = useCallback((workoutExerciseId, setId) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: startTimedSet(
+          current.activeWorkout,
+          workoutExerciseId,
+          setId,
+          new Date(),
+        ),
+      };
+    });
+  }, []);
+
   const swapWorkoutExercise = useCallback(
     (workoutExerciseId, exerciseId) => {
       let mode = "none";
@@ -587,7 +637,7 @@ export function ArnoldProvider({ children }) {
 
   const finishWorkout = useCallback(
     (fatigue, waterMl) => {
-      let saved = false;
+      let savedSession = null;
 
       updateArnoldStore((current) => {
         if (!current.activeWorkout) {
@@ -600,7 +650,7 @@ export function ArnoldProvider({ children }) {
           new Date(),
           waterMl,
         );
-        saved = true;
+        savedSession = session;
         return {
           ...current,
           sessions: [session, ...current.sessions],
@@ -608,11 +658,11 @@ export function ArnoldProvider({ children }) {
         };
       });
 
-      if (saved) {
+      if (savedSession) {
         showNotice("Entrenamiento guardado");
       }
 
-      return saved;
+      return savedSession;
     },
     [showNotice],
   );
@@ -646,6 +696,7 @@ export function ArnoldProvider({ children }) {
       saveWorkoutExercise,
       addExerciseToActiveWorkout,
       removeExerciseFromActiveWorkout,
+      reorderActiveWorkoutExercises,
       adjustActiveRest,
       skipActiveRest,
       toggleActiveRestPause,
@@ -654,6 +705,8 @@ export function ArnoldProvider({ children }) {
       finishTimedSet,
       resetTimedSetTimer,
       stopTimedSetTimer,
+      pauseTimedSetTimer,
+      resumeTimedSetTimer,
       swapWorkoutExercise,
       finishWorkout,
     }),
@@ -685,6 +738,7 @@ export function ArnoldProvider({ children }) {
       saveWorkoutExercise,
       addExerciseToActiveWorkout,
       removeExerciseFromActiveWorkout,
+      reorderActiveWorkoutExercises,
       adjustActiveRest,
       skipActiveRest,
       toggleActiveRestPause,
@@ -693,6 +747,8 @@ export function ArnoldProvider({ children }) {
       finishTimedSet,
       resetTimedSetTimer,
       stopTimedSetTimer,
+      pauseTimedSetTimer,
+      resumeTimedSetTimer,
       swapWorkoutExercise,
       finishWorkout,
     ],

@@ -4,16 +4,13 @@ import { Pencil } from "lucide-react";
 import { ExerciseImage } from "@/components/ui/ExerciseImage";
 import { IconButton } from "@/components/ui/Button";
 import { SetButtons } from "@/components/workout/SetButtons";
-import { TimedSetTimer } from "@/components/workout/TimedSetTimer";
 import { EXERCISE_TYPE, formatCurrentSetSummary } from "@/lib/exercises";
-import { isStretchExercise } from "@/lib/stretchPresets";
 import { isExerciseComplete } from "@/lib/workoutSets";
 import styles from "./WorkoutExercise.module.css";
 
 export function WorkoutExercise({
   exercise,
   current,
-  timedTimer,
   onToggleSet,
   onEdit,
 }) {
@@ -49,18 +46,6 @@ export function WorkoutExercise({
         sets={exercise.sets}
         onToggle={(set) => onToggleSet(exercise, set)}
       />
-
-      {timedTimer &&
-      timedTimer.workoutExerciseId === exercise.workoutExerciseId &&
-      exercise.type === EXERCISE_TYPE.TIMED ? (
-        <TimedSetTimer
-          timedTimer={timedTimer}
-          pacePhases={exercise.pacePhases}
-          label={
-            isStretchExercise(exercise) ? "Elongación en curso" : "Serie en curso"
-          }
-        />
-      ) : null}
     </article>
   );
 }

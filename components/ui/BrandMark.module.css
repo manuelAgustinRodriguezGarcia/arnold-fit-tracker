@@ -47,8 +47,16 @@
   font-weight: 700;
 }
 
+.taglineInverted {
+  color: inherit;
+}
+
 :global(html[data-theme="neon"]) .tagline {
   color: var(--stone-gray);
+}
+
+:global(html[data-theme="neon"]) .taglineInverted {
+  color: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

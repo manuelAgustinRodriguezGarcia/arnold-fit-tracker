@@ -1,124 +1,159 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { ChevronDown, GlassWater } from "lucide-react";
+import { useEffect, useState } from "react";
+import { GlassWater, Minus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useArnold } from "@/hooks/useArnold";
 import { NUMBER_FIELD } from "@/lib/inputAttrs";
-import { fromWaterMl, parseWaterAmount, toWaterMl } from "@/lib/hydration";
+import {
+  formatWaterMl,
+  maxBottlesForCapacity,
+  normalizeBottleCapacityMl,
+  parseWaterAmount,
+  waterMlFromBottles,
+} from "@/lib/hydration";
 import styles from "./HydrationStep.module.css";
 
-const UNITS = ["L", "ml"];
-
 export function HydrationStep({ onChange }) {
-  const listId = useId();
-  const pickerRef = useRef(null);
-  const [unit, setUnit] = useState("L");
-  const [text, setText] = useState("");
-  const [unitOpen, setUnitOpen] = useState(false);
+  const { settings, updateSettings } = useArnold();
+  const capacityMl = normalizeBottleCapacityMl(settings?.bottleCapacityMl);
+  const [capacityText, setCapacityText] = useState("");
+  const [count, setCount] = useState(0);
 
-  const parsed = parseWaterAmount(text);
+  const capacityParsed = parseWaterAmount(capacityText);
+  const maxBottles = maxBottlesForCapacity(capacityMl);
 
   useEffect(() => {
-    if (!unitOpen) {
-      return undefined;
-    }
-
-    function onPointerDown(event) {
-      if (!pickerRef.current?.contains(event.target)) {
-        setUnitOpen(false);
-      }
-    }
-
-    function onKeyDown(event) {
-      if (event.key === "Escape") {
-        setUnitOpen(false);
-      }
-    }
-
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [unitOpen]);
-
-  function emit(nextMl) {
-    onChange?.(nextMl);
-  }
-
-  function onTextChange(value) {
-    setText(value);
-    const next = parseWaterAmount(value);
-    if (next.invalid || next.empty) {
-      emit(null);
+    if (capacityMl <= 0) {
+      onChange?.(null);
       return;
     }
-    emit(toWaterMl(next.value, unit));
+    onChange?.(waterMlFromBottles(count, capacityMl));
+  }, [capacityMl, count, onChange]);
+
+  function saveCapacity(rawText) {
+    const parsed = parseWaterAmount(rawText);
+    if (parsed.empty || parsed.invalid || parsed.value <= 0) {
+      return false;
+    }
+    const next = normalizeBottleCapacityMl(parsed.value);
+    if (next <= 0) {
+      return false;
+    }
+    updateSettings({ bottleCapacityMl: next });
+    setCapacityText("");
+    setCount(0);
+    return true;
   }
 
-  function onUnitChange(nextUnit) {
-    const currentMl = parsed.invalid || parsed.empty ? null : toWaterMl(parsed.value, unit);
-    setUnit(nextUnit);
-    setUnitOpen(false);
-    if (currentMl == null) {
-      return;
-    }
-    setText(fromWaterMl(currentMl, nextUnit));
-    emit(currentMl);
+  function onCapacityTextChange(value) {
+    setCapacityText(value);
   }
+
+  function onCapacityKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveCapacity(capacityText);
+    }
+  }
+
+  function bump(delta) {
+    setCount((current) => {
+      const next = Math.max(0, Math.min(maxBottles, current + delta));
+      return next;
+    });
+  }
+
+  if (capacityMl <= 0) {
+    return (
+      <div className={styles.wrap}>
+        <GlassWater className={styles.hero} size={48} aria-hidden="true" />
+        <p className={styles.prompt}>¿Cuánto entra en tu botella?</p>
+        <p className={styles.sub}>Se guarda en Ajustes para la próxima.</p>
+        <div className={styles.capacityField}>
+          <label className={styles.amount}>
+            <span className="sr-only">Capacidad de la botella en ml</span>
+            <input
+              {...NUMBER_FIELD}
+              inputMode="decimal"
+              value={capacityText}
+              onChange={(event) => onCapacityTextChange(event.target.value)}
+              onKeyDown={onCapacityKeyDown}
+              placeholder="750"
+              aria-invalid={capacityParsed.invalid}
+            />
+          </label>
+          <span className={styles.unitFixed} aria-hidden="true">
+            Ml
+          </span>
+        </div>
+        {capacityParsed.invalid ? (
+          <p className={styles.hint}>Ingresá un número válido.</p>
+        ) : null}
+        <Button
+          size="lg"
+          disabled={
+            capacityParsed.empty ||
+            capacityParsed.invalid ||
+            !(capacityParsed.value > 0)
+          }
+          onClick={() => saveCapacity(capacityText)}
+        >
+          Listo
+        </Button>
+      </div>
+    );
+  }
+
+  const totalMl = waterMlFromBottles(count, capacityMl);
 
   return (
     <div className={styles.wrap}>
-      <GlassWater className={styles.hero} size={48} aria-hidden="true" />
-
-      <div className={styles.field}>
-        <label className={styles.amount}>
-          <span className="sr-only">Cantidad de agua tomada</span>
-          <input
-            {...NUMBER_FIELD}
-            inputMode="decimal"
-            value={text}
-            onChange={(event) => onTextChange(event.target.value)}
-            placeholder={unit === "L" ? "1,5" : "500"}
-            aria-invalid={parsed.invalid}
-          />
-        </label>
-        <div className={styles.unitPicker} ref={pickerRef}>
-          <button
-            type="button"
-            className={`${styles.unit} ${unitOpen ? styles.unitOpen : ""}`}
-            aria-label="Unidad"
-            aria-haspopup="listbox"
-            aria-expanded={unitOpen}
-            aria-controls={listId}
-            onClick={() => setUnitOpen((current) => !current)}
-          >
-            <span>{unit}</span>
-            <ChevronDown size={16} aria-hidden="true" />
-          </button>
-          {unitOpen ? (
-            <ul id={listId} className={styles.menu} role="listbox" aria-label="Unidad">
-              {UNITS.map((item) => (
-                <li key={item}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={unit === item}
-                    className={styles.option}
-                    onClick={() => onUnitChange(item)}
-                  >
-                    {item}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+      <div className={styles.glasses} aria-hidden="true">
+        {count === 0 ? (
+          <GlassWater className={styles.hero} size={48} />
+        ) : (
+          Array.from({ length: count }, (_, index) => (
+            <GlassWater
+              key={`${capacityMl}-${index}`}
+              className={styles.glass}
+              size={28}
+            />
+          ))
+        )}
       </div>
 
-      {parsed.invalid ? (
-        <p className={styles.hint}>Ingresá un número válido.</p>
-      ) : null}
+      <div className={styles.stepper} role="group" aria-label="Botellas tomadas">
+        <button
+          type="button"
+          className={styles.stepBtn}
+          aria-label="Quitar botella"
+          disabled={count <= 0}
+          onClick={() => bump(-1)}
+        >
+          <Minus size={20} aria-hidden="true" />
+        </button>
+        <div className={styles.count} aria-live="polite">
+          {count}
+        </div>
+        <button
+          type="button"
+          className={styles.stepBtn}
+          aria-label="Agregar botella"
+          disabled={count >= maxBottles}
+          onClick={() => bump(1)}
+        >
+          <Plus size={20} aria-hidden="true" />
+        </button>
+      </div>
+
+      <p className={styles.sub}>
+        {count === 0
+          ? `${formatWaterMl(capacityMl)} por botella`
+          : `${count} × ${formatWaterMl(capacityMl)}${
+              totalMl > 0 ? ` · ${formatWaterMl(totalMl)}` : ""
+            }`}
+      </p>
     </div>
   );
 }

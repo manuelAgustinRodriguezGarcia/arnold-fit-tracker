@@ -50,14 +50,17 @@ function uniqueRoutineNames(daySessions) {
   return names;
 }
 
-export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
+export function ProgressCalendar({ sessions, expanded, onExpandedChange, onViewLockChange }) {
   const todayKey = localDateKey(new Date());
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth());
   const [picker, setPicker] = useState(null);
   const [selectedKey, setSelectedKey] = useState(todayKey);
   const shellRef = useRef(null);
+  const slotRef = useRef(null);
+  const flipTweenRef = useRef(null);
   const selectedYearRef = useRef(null);
+  const [covering, setCovering] = useState(false);
 
   const cells = useMemo(() => getMonthCells(year, month), [year, month]);
   const years = useMemo(() => {
@@ -104,7 +107,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
 
   const monthLabel = formatMonthYear(year, month);
 
-  useBodyScrollLock(expanded);
+  useBodyScrollLock(covering);
 
   useGSAP({ scope: shellRef });
 
@@ -114,28 +117,67 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
         return;
       }
 
-      const animate = !prefersReducedMotion() && shellRef.current;
-      const state = animate ? Flip.getState(shellRef.current) : null;
+      const shell = shellRef.current;
+      const slot = slotRef.current;
+      const animate = !prefersReducedMotion() && shell;
+
+      flipTweenRef.current?.kill();
+      flipTweenRef.current = null;
+
+      if (next && slot && shell) {
+        slot.style.height = `${shell.getBoundingClientRect().height}px`;
+      }
+
+      const state = animate ? Flip.getState(shell) : null;
+
       flushSync(() => {
+        if (next) {
+          setCovering(true);
+          onViewLockChange?.(true);
+        }
         onExpandedChange(next);
         if (!next) {
           setPicker(null);
         }
       });
 
+      const releaseCollapse = () => {
+        if (slot) {
+          slot.style.height = "";
+        }
+        setCovering(false);
+        onViewLockChange?.(false);
+      };
+
       if (!state) {
+        if (!next) {
+          releaseCollapse();
+        }
         return;
       }
 
-      Flip.from(state, {
+      flipTweenRef.current = Flip.from(state, {
         duration: next ? 0.42 : 0.32,
         ease: "power2.inOut",
         absolute: true,
         nested: true,
+        onComplete: () => {
+          flipTweenRef.current = null;
+          if (!next) {
+            releaseCollapse();
+          }
+        },
       });
     },
-    [expanded, onExpandedChange],
+    [expanded, onExpandedChange, onViewLockChange],
   );
+
+  useEffect(() => {
+    return () => {
+      flipTweenRef.current?.kill();
+      flipTweenRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (picker !== "year" || !selectedYearRef.current) {
@@ -212,7 +254,7 @@ export function ProgressCalendar({ sessions, expanded, onExpandedChange }) {
     : "";
 
   return (
-    <div className={styles.slot}>
+    <div className={styles.slot} ref={slotRef}>
       <div
         ref={shellRef}
         className={`${styles.shell} ${expanded ? styles.expanded : ""}`}

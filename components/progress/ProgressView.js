@@ -5,7 +5,6 @@ import { ChartNoAxesColumnIncreasing, ChevronLeft, ChevronRight } from "lucide-r
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/Button";
 import { ActivityChart } from "@/components/progress/ActivityChart";
-import { ExerciseProgress } from "@/components/progress/ExerciseProgress";
 import { ProgressCalendar } from "@/components/progress/ProgressCalendar";
 import { SessionCard } from "@/components/progress/SessionCard";
 import { TimeByRoutineChart } from "@/components/progress/TimeByRoutineChart";
@@ -25,6 +24,7 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
   const [period, setPeriod] = useState("week");
   const [offset, setOffset] = useState(0);
   const [calendarExpanded, setCalendarExpanded] = useState(false);
+  const [calendarViewLocked, setCalendarViewLocked] = useState(false);
 
   const range = getPeriodRange(period, offset);
   const periodSessions = useMemo(
@@ -42,13 +42,14 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
   return (
     <section
       className={`${styles.view} ${ordered.length === 0 ? styles.centered : ""} ${
-        calendarExpanded ? styles.viewOpen : ""
+        calendarViewLocked ? styles.viewOpen : ""
       }`}
     >
       <ProgressCalendar
         sessions={sessions}
         expanded={calendarExpanded}
         onExpandedChange={setCalendarExpanded}
+        onViewLockChange={setCalendarViewLocked}
       />
       {ordered.length === 0 ? (
         <EmptyState
@@ -119,8 +120,12 @@ export function ProgressView({ onOpenSession, onDeleteSession }) {
           </div>
 
           <TimeByRoutineChart items={routineTimes} />
-          <ActivityChart period={period} days={days} weeks={weeks} />
-          <ExerciseProgress sessions={sessions} />
+          <ActivityChart
+            period={period}
+            days={days}
+            weeks={weeks}
+            sessions={sessions}
+          />
 
           <div className={styles.list}>
             {ordered.map((session) => (

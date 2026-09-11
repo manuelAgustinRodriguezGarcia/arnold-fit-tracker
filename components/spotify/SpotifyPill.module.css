@@ -19,6 +19,7 @@
 
 .workout {
   bottom: calc(88px + env(safe-area-inset-bottom) + 12px);
+  z-index: calc(var(--z-spotify-pill) + 20);
 }
 
 .pill[inert] {

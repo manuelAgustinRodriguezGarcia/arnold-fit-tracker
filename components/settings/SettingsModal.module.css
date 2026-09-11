@@ -112,3 +112,45 @@
   color: var(--charcoal);
   box-shadow: var(--shadow-card);
 }
+
+.bottleField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  width: 100%;
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 1px solid var(--stone-taupe);
+  background: var(--marble);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.bottleField:focus-within {
+  border-color: var(--accent);
+}
+
+.bottleAmount {
+  display: flex;
+  min-width: 0;
+}
+
+.bottleAmount input {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--charcoal);
+}
+
+.bottleAmount input:focus-visible {
+  outline: none;
+}
+
+.bottleUnit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--stone-taupe);
+  font-weight: 700;
+  color: var(--charcoal);
+}

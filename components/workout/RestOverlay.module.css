@@ -1,0 +1,16 @@
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.actions :global(button:disabled) {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.actions :global(button:disabled:active) {
+  transform: none;
+}

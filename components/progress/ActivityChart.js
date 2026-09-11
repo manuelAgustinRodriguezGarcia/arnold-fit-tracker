@@ -1,15 +1,21 @@
-import { getWeekdayShortLabels } from "@/lib/dates";
+"use client";
+
+import { WeekActivityBars } from "@/components/progress/WeekActivityBars";
 import styles from "./ProgressCharts.module.css";
 
-export function ActivityChart({ period, days, weeks }) {
-  const items =
-    period === "week"
-      ? days.map((day, index) => ({
-          label: getWeekdayShortLabels()[index],
-          durationSeconds: day.durationSeconds,
-        }))
-      : weeks;
+export function ActivityChart({ period, days, weeks, sessions }) {
+  if (period === "week") {
+    return (
+      <WeekActivityBars
+        sessions={sessions}
+        days={days}
+        title="Actividad"
+        ariaLabel="Actividad del período"
+      />
+    );
+  }
 
+  const items = weeks;
   const max = Math.max(0, ...items.map((item) => item.durationSeconds));
 
   return (

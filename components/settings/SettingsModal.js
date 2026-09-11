@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Check, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
 import { useSpotify } from "@/context/SpotifyContext";
+import { NUMBER_FIELD } from "@/lib/inputAttrs";
+import { normalizeBottleCapacityMl, parseWaterAmount } from "@/lib/hydration";
 import {
   APPEARANCE_DARK,
   APPEARANCE_LIGHT,
@@ -28,6 +31,29 @@ export function SettingsModal({ open, onClose }) {
   const selected = normalizeThemePalette(settings?.themePalette);
   const appearance = normalizeAppearance(settings?.appearance);
   const appearanceEnabled = paletteUsesAppearance(selected);
+  const [bottleText, setBottleText] = useState("");
+  const bottleParsed = parseWaterAmount(bottleText);
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      const ml = normalizeBottleCapacityMl(settings?.bottleCapacityMl);
+      setBottleText(ml > 0 ? String(ml) : "");
+    }
+    wasOpenRef.current = open;
+  }, [open, settings?.bottleCapacityMl]);
+
+  function onBottleChange(value) {
+    setBottleText(value);
+    const parsed = parseWaterAmount(value);
+    if (parsed.empty) {
+      updateSettings({ bottleCapacityMl: 0 });
+      return;
+    }
+    if (!parsed.invalid && parsed.value >= 0) {
+      updateSettings({ bottleCapacityMl: parsed.value });
+    }
+  }
 
   return (
     <Modal open={open} title="Ajustes" onClose={onClose}>
@@ -99,6 +125,30 @@ export function SettingsModal({ open, onClose }) {
         </div>
         {!appearanceEnabled ? (
           <p className={styles.muted}>Arnold Neon no cambia con Light/Dark.</p>
+        ) : null}
+      </section>
+
+      <section className={styles.section}>
+        <h3>Botella personal</h3>
+        <p>Indicá la capacidad de tu botella personal</p>
+        <div className={styles.bottleField}>
+          <label className={styles.bottleAmount}>
+            <span className="sr-only">Capacidad en ml</span>
+            <input
+              {...NUMBER_FIELD}
+              inputMode="decimal"
+              value={bottleText}
+              onChange={(event) => onBottleChange(event.target.value)}
+              placeholder="750"
+              aria-invalid={bottleParsed.invalid}
+            />
+          </label>
+          <span className={styles.bottleUnit} aria-hidden="true">
+            Ml
+          </span>
+        </div>
+        {bottleParsed.invalid ? (
+          <p className={styles.muted}>Ingresá un número válido.</p>
         ) : null}
       </section>
 

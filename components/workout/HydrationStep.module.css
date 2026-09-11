@@ -8,14 +8,33 @@
   color: var(--accent);
 }
 
-.field {
+.prompt {
+  margin: 0;
+  font-weight: 700;
+  color: var(--charcoal);
+  text-align: center;
+}
+
+.sub {
+  margin: 0;
+  color: var(--stone-gray);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.capacityField {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 80px;
-  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  width: min(100%, 220px);
   min-height: var(--touch);
   border-radius: 12px;
   border: 1px solid var(--stone-taupe);
   background: var(--marble);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.capacityField:focus-within {
+  border-color: var(--accent);
 }
 
 .amount {
@@ -33,72 +52,75 @@
 }
 
 .amount input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: none;
 }
 
-.unitPicker {
-  position: relative;
-  z-index: 2;
-  border-left: 1px solid var(--stone-taupe);
-}
-
-.unit {
+.unitFixed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: 100%;
-  min-height: var(--touch);
-  padding: 0 8px;
-  background: transparent;
-  color: var(--charcoal);
+  border-left: 1px solid var(--stone-taupe);
   font-weight: 700;
+  color: var(--charcoal);
 }
 
-.unit svg {
+.glasses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  max-width: 100%;
+}
+
+.glass {
+  color: var(--accent);
   flex-shrink: 0;
-  color: var(--stone-gray);
-  transition: transform var(--duration-fast) var(--ease-out);
+  animation: glassIn 320ms var(--ease-out);
+  transform-origin: center bottom;
 }
 
-.unitOpen svg {
-  transform: rotate(180deg);
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.unit:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.menu {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  right: 0;
-  z-index: 4;
-  min-width: 88px;
-  padding: 6px;
-  list-style: none;
+.stepBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch);
+  min-height: var(--touch);
   border-radius: 12px;
   border: 1px solid var(--stone-taupe);
-  background: var(--ivory);
-  box-shadow: var(--shadow-card);
-}
-
-.option {
-  display: block;
-  width: 100%;
-  min-height: var(--touch);
-  padding: 0 12px;
-  border-radius: 10px;
-  text-align: left;
-  font-weight: 700;
+  background: var(--marble);
   color: var(--charcoal);
 }
 
-.option[aria-selected="true"],
-.option:active {
-  background: var(--stone-light);
+.stepBtn:disabled {
+  opacity: 0.4;
+}
+
+.stepBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 1px solid var(--stone-taupe);
+  background: var(--marble);
+  color: var(--charcoal);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .hint {
@@ -106,8 +128,25 @@
   font-size: 0.9rem;
 }
 
+@keyframes glassIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .option:hover {
+  .stepBtn:not(:disabled):hover {
     background: var(--stone-light);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass {
+    animation: none;
   }
 }

@@ -145,7 +145,7 @@ export function AppShell() {
         ) : null}
       </div>
 
-      {workoutOpen && activeWorkout ? (
+      {workoutOpen ? (
         <WorkoutScreen
           onMinimize={() => setWorkoutOpen(false)}
           onFinished={handleWorkoutFinished}

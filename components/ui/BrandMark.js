@@ -26,7 +26,7 @@ const TAGLINES = [
 const ROTATE_MS = 30_000;
 const FADE_MS = 180;
 
-export function BrandMark({ heading = false }) {
+export function BrandMark({ heading = false, force = null, inverted = false }) {
   const [index, setIndex] = useState(0);
   const [hidden, setHidden] = useState(false);
   const Title = heading ? "h1" : "div";
@@ -57,11 +57,13 @@ export function BrandMark({ heading = false }) {
   return (
     <div className={styles.brand}>
       <Title className={styles.brandTitle}>
-        <Logo variant="wordmark" height={52} />
+        <Logo variant="wordmark" height={52} force={force} />
         <span className="sr-only">Arnold</span>
       </Title>
       <p
-        className={`${styles.tagline} ${hidden ? styles.taglineHidden : ""}`}
+        className={`${styles.tagline} ${inverted ? styles.taglineInverted : ""} ${
+          hidden ? styles.taglineHidden : ""
+        }`}
         aria-live="polite"
       >
         {line.content}
