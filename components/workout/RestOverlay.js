@@ -126,43 +126,47 @@ export function RestOverlay({ restTimer }) {
       <div className={restStyles.actions}>
         <button
           type="button"
-          className={styles.action}
+          className={`${styles.action} ${restStyles.square}`}
           onClick={() => adjustActiveRest(-15)}
           disabled={!canSubtract || closing}
           aria-label="Restar 15 segundos"
         >
-          −15
+          <span className={restStyles.delta} aria-hidden="true">
+            −15
+          </span>
         </button>
         <button
           type="button"
-          className={styles.action}
+          className={`${styles.action} ${restStyles.square}`}
           onClick={() => adjustActiveRest(15)}
           disabled={closing}
           aria-label="Sumar 15 segundos"
         >
-          +15
+          <span className={restStyles.delta} aria-hidden="true">
+            +15
+          </span>
         </button>
         <button
           type="button"
-          className={styles.action}
+          className={`${styles.action} ${restStyles.square}`}
           onClick={toggleActiveRestPause}
           disabled={closing}
+          aria-label={paused ? "Reanudar" : "Pausar"}
         >
           {paused ? (
-            <Play size={22} strokeWidth={2.4} />
+            <Play size={24} strokeWidth={2.4} />
           ) : (
-            <Pause size={22} strokeWidth={2.4} />
+            <Pause size={24} strokeWidth={2.4} />
           )}
-          {paused ? "Reanudar" : "Pausa"}
         </button>
         <button
           type="button"
-          className={styles.action}
+          className={`${styles.action} ${restStyles.square}`}
           onClick={skipActiveRest}
           disabled={closing}
+          aria-label="Saltar descanso"
         >
-          <SkipForward size={22} strokeWidth={2.4} />
-          Saltar
+          <SkipForward size={24} strokeWidth={2.4} />
         </button>
       </div>
     </div>

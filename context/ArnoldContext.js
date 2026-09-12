@@ -11,6 +11,7 @@ import { createId } from "@/lib/ids";
 import { createExerciseRecord, findExerciseById } from "@/lib/exercises";
 import { applyThemeAttributes, normalizeAppearance, normalizeThemePalette } from "@/lib/themes";
 import { normalizeBottleCapacityMl } from "@/lib/hydration";
+import { playNotificationSound } from "@/lib/notificationSound";
 import {
   adjustRestTimer,
   applyResizeSets,
@@ -504,13 +505,21 @@ export function ArnoldProvider({ children }) {
   }, []);
 
   const expireActiveRest = useCallback(() => {
+    let expired = false;
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
         return current;
       }
       const next = clearExpiredRest(current.activeWorkout);
-      return next === current.activeWorkout ? current : { ...current, activeWorkout: next };
+      if (next === current.activeWorkout) {
+        return current;
+      }
+      expired = true;
+      return { ...current, activeWorkout: next };
     });
+    if (expired) {
+      playNotificationSound();
+    }
   }, []);
 
   const beginTimedSet = useCallback((workoutExerciseId, setId) => {
@@ -531,10 +540,12 @@ export function ArnoldProvider({ children }) {
   }, []);
 
   const finishTimedSet = useCallback((workoutExerciseId, setId) => {
+    let finished = false;
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
         return current;
       }
+      finished = true;
       return {
         ...current,
         activeWorkout: applyTimedSetComplete(
@@ -545,6 +556,9 @@ export function ArnoldProvider({ children }) {
         ),
       };
     });
+    if (finished) {
+      playNotificationSound();
+    }
   }, []);
 
   const resetTimedSetTimer = useCallback((workoutExerciseId, setId) => {
@@ -659,6 +673,7 @@ export function ArnoldProvider({ children }) {
       });
 
       if (savedSession) {
+        playNotificationSound();
         showNotice("Entrenamiento guardado");
       }
 

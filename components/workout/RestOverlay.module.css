@@ -1,9 +1,30 @@
 .actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-4);
   padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.square {
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 68px;
+  min-height: 56px;
+  height: auto;
+  justify-self: center;
+  padding: 0;
+  gap: 0;
+  border-radius: 14px;
+}
+
+.delta {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .actions :global(button:disabled) {
