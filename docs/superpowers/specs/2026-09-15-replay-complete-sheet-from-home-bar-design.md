@@ -28,7 +28,7 @@ On Home, tapping today’s activity bar (when that day has a workout) reopens th
 Reuse current `WorkoutCompleteSheet` (title with weekday, hero icon, stats, exercise list, record badge when applicable). Recalculate duration record with `isLongestDurationSession(session, sessions)` on open so the badge stays correct.
 
 ## Architecture
-- `WeekActivityBars`: optional `onTodaySessionSelect(session)`. When provided and the clicked day is today with sessions, call it with the latest session instead of (or without relying on) caption-only selection for that path. When omitted, keep current caption behavior (Progress).
+- `WeekActivityBars`: optional `onTodaySessionSelect(session)`. When provided and the clicked day is today with sessions, call it with the latest session and do not toggle the weekday caption for that click. When the prop is omitted, keep current caption behavior (Progress).
 - `HomeView` / `WeeklySummary`: local state for `replaySession` (+ derived `isDurationRecord`); render `WorkoutCompleteSheet` when set; pass `onTodaySessionSelect`.
 - `WorkoutCompleteSheet`: add `celebrate` prop (default `true`). When `false`, skip confetti. Finish flow keeps default `true`.
 
