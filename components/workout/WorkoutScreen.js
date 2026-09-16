@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BatteryFull,
   BatteryLow,
@@ -78,6 +78,26 @@ function formatStretchMeta(exercise) {
   return `${sets} × ${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function buildTimedSession(workout) {
+  const active = workout?.timedTimer;
+  if (!active?.setId || !active?.workoutExerciseId) {
+    return null;
+  }
+  const exercise = workout.exercises?.find(
+    (item) => item.workoutExerciseId === active.workoutExerciseId,
+  );
+  if (!exercise) {
+    return null;
+  }
+  return {
+    workoutExerciseId: active.workoutExerciseId,
+    setId: active.setId,
+    name: exercise.name,
+    isStretch: isStretchExercise(exercise),
+    startPhase: "running",
+  };
+}
+
 export function WorkoutScreen({ onMinimize, onFinished }) {
   const {
     exercises: libraryExercises,
@@ -109,10 +129,47 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   const [finishPhase, setFinishPhase] = useState(null);
   const [addingOpen, setAddingOpen] = useState(false);
   const [exerciseCreatorOpen, setExerciseCreatorOpen] = useState(false);
-  const [timedSession, setTimedSession] = useState(null);
+  const [timedSession, setTimedSession] = useState(() =>
+    buildTimedSession(activeWorkout),
+  );
+  const [timerExpanded, setTimerExpanded] = useState(
+    () => !(activeWorkout?.restTimer || activeWorkout?.timedTimer),
+  );
+  const [timedPacePhase, setTimedPacePhase] = useState(null);
   const [completeSession, setCompleteSession] = useState(null);
   const [isDurationRecord, setIsDurationRecord] = useState(false);
+  const focusTimerKeyRef = useRef(undefined);
   useBodyScrollLock(Boolean(activeWorkout) || Boolean(completeSession));
+
+  const hasFocusTimer = Boolean(timedSession || activeWorkout?.restTimer);
+  const focusTimerKey = timedSession
+    ? `timed:${timedSession.workoutExerciseId}:${timedSession.setId}`
+    : activeWorkout?.restTimer
+      ? `rest:${activeWorkout.restTimer.workoutExerciseId}:${activeWorkout.restTimer.startedAt}`
+      : null;
+
+  useEffect(() => {
+    if (focusTimerKeyRef.current === undefined) {
+      focusTimerKeyRef.current = focusTimerKey;
+      return;
+    }
+    if (focusTimerKey && focusTimerKey !== focusTimerKeyRef.current) {
+      setTimerExpanded(true);
+    }
+    focusTimerKeyRef.current = focusTimerKey;
+  }, [focusTimerKey]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (hasFocusTimer) {
+      root.setAttribute("data-workout-focus-timer", "on");
+    } else {
+      root.removeAttribute("data-workout-focus-timer");
+    }
+    return () => {
+      root.removeAttribute("data-workout-focus-timer");
+    };
+  }, [hasFocusTimer]);
 
   const stretchItems = useMemo(() => {
     const presetIds = STRETCH_PRESETS.map((preset) => preset.id);
@@ -318,14 +375,30 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
   }
 
   const paused = activeWorkout.status === WORKOUT_STATUS.PAUSED;
-  const focusOverlay = Boolean(timedSession || activeWorkout.restTimer);
+  const focusOverlay = hasFocusTimer && timerExpanded;
+  const paceHeaderClass =
+    focusOverlay && timedPacePhase === "start"
+      ? styles.headerPaceStart
+      : focusOverlay && timedPacePhase === "mid"
+        ? styles.headerPaceMid
+        : "";
+  const paceScreenClass =
+    focusOverlay && timedPacePhase === "start"
+      ? styles.screenPaceStart
+      : focusOverlay && timedPacePhase === "mid"
+        ? styles.screenPaceMid
+        : "";
+
+  function onTimerMinimize() {
+    setTimerExpanded(false);
+  }
 
   return (
     <section
-      className={`${styles.screen} ${focusOverlay ? styles.screenTimed : ""}`}
+      className={`${styles.screen} ${focusOverlay ? styles.screenTimed : ""} ${paceScreenClass}`}
     >
       <header
-        className={`${styles.header} ${focusOverlay ? styles.headerTimed : ""}`}
+        className={`${styles.header} ${focusOverlay ? styles.headerTimed : ""} ${paceHeaderClass}`}
       >
         {focusOverlay ? (
           <span className={styles.headerSpacer} aria-hidden="true" />
@@ -346,16 +419,30 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
           <TimedSetOverlay
             key={`${timedSession.workoutExerciseId}:${timedSession.setId}`}
             session={timedSession}
-            onClose={() => setTimedSession(null)}
+            expanded={timerExpanded}
+            onExpand={() => setTimerExpanded(true)}
+            onMinimize={onTimerMinimize}
+            onClose={() => {
+              setTimedPacePhase(null);
+              setTimedSession(null);
+            }}
+            onPacePhaseChange={setTimedPacePhase}
           />
         ) : null}
 
-        <RestOverlay restTimer={activeWorkout.restTimer} />
+        <RestOverlay
+          restTimer={timedSession ? null : activeWorkout.restTimer}
+          expanded={timerExpanded}
+          onExpand={() => setTimerExpanded(true)}
+          onMinimize={onTimerMinimize}
+        />
 
         <div className={styles.body}>
           <ul
             ref={listRef}
-            className={`${styles.exercises} ${isDragging ? styles.exercisesDragging : ""}`}
+            className={`${styles.exercises} ${isDragging ? styles.exercisesDragging : ""} ${
+              hasFocusTimer && !timerExpanded ? styles.exercisesWithDock : ""
+            }`}
           >
           {visibleExercises.map((exercise) => (
             <li
@@ -404,6 +491,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         </ul>
         </div>
 
+        {hasFocusTimer ? null : (
         <div className={styles.controls}>
           {showFinalFinish ? (
             <>
@@ -460,6 +548,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
             </>
           )}
         </div>
+        )}
       </div>
 
       <Modal

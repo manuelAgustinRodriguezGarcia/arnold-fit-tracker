@@ -22,6 +22,10 @@
   z-index: calc(var(--z-spotify-pill) + 20);
 }
 
+:global(html[data-workout-focus-timer="on"]) .workout {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
 .pill[inert] {
   pointer-events: none;
 }

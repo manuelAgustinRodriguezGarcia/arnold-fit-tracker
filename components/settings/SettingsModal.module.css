@@ -3,8 +3,24 @@
   gap: var(--space-3);
 }
 
+.modalTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
 .section h3 {
   font-size: 1rem;
+}
+
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section p {
@@ -31,50 +47,82 @@
   background: var(--bronze-dark);
 }
 
-.list {
+.paletteGrid {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   padding: 2px;
 }
 
-.option {
+.paletteCard {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--stone-taupe);
-  background: var(--ivory);
-  text-align: left;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  color: inherit;
 }
 
-.option[aria-checked="true"] {
+.palettePreview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1.55 / 1;
+  min-height: 64px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--stone-taupe);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.paletteCard:active .palettePreview {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palettePreview {
+    transition: none;
+  }
+
+  .paletteCard:active .palettePreview {
+    transform: none;
+  }
+}
+
+.paletteCard[aria-checked="true"] .palettePreview {
   border-color: var(--bronze-dark);
   box-shadow: 0 0 0 1px var(--bronze-dark);
 }
 
-.optionHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+.paletteLogo {
+  display: block;
+  width: 100%;
+  max-width: 108px;
+  height: auto;
+  max-height: 28px;
+  object-fit: contain;
+}
+
+.paletteName {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
   color: var(--charcoal);
 }
 
-.swatches {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+:global(html[data-theme="neon"]) .paletteCard[aria-checked="true"] .palettePreview {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-.swatch {
-  display: block;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid var(--stone-taupe);
-}
-
-:global(html[data-theme="neon"]) .option[aria-checked="true"] .optionHead {
+:global(html[data-theme="neon"]) .paletteCard[aria-checked="true"] .paletteName {
   color: var(--accent);
 }
 

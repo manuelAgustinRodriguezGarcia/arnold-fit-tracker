@@ -8,6 +8,7 @@
   margin: 0 auto;
   background: var(--marble);
   animation: fadeView 220ms var(--ease-out);
+  transition: background-color 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .header {
@@ -21,13 +22,21 @@
   padding: calc(env(safe-area-inset-top) + 12px) var(--space-4) 12px;
   background: var(--marble);
   transition:
-    background-color 420ms var(--ease-out),
+    background-color 520ms cubic-bezier(0.16, 1, 0.3, 1),
     color 420ms var(--ease-out);
 }
 
 .headerTimed {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+.headerPaceStart {
+  background: color-mix(in srgb, var(--accent) 78%, white);
+}
+
+.headerPaceMid {
+  background: color-mix(in srgb, var(--accent) 72%, black);
 }
 
 .headerSpacer {
@@ -48,10 +57,28 @@
   background: var(--accent);
 }
 
+.screenPaceStart {
+  background: color-mix(in srgb, var(--accent) 78%, white);
+}
+
+.screenPaceMid {
+  background: color-mix(in srgb, var(--accent) 72%, black);
+}
+
 :global(html[data-theme="neon"]) .headerTimed,
 :global(html[data-theme="neon"]) .screenTimed {
   background: var(--neon-background);
   color: var(--neon-text-primary);
+}
+
+:global(html[data-theme="neon"]) .headerPaceStart,
+:global(html[data-theme="neon"]) .screenPaceStart {
+  background: color-mix(in srgb, var(--neon-background) 68%, white);
+}
+
+:global(html[data-theme="neon"]) .headerPaceMid,
+:global(html[data-theme="neon"]) .screenPaceMid {
+  background: color-mix(in srgb, var(--neon-background) 78%, black);
 }
 
 .timer {
@@ -105,6 +132,12 @@
   touch-action: none;
   overflow: hidden;
   isolation: isolate;
+}
+
+.exercisesWithDock {
+  padding-bottom: calc(
+    200px + env(safe-area-inset-bottom) + var(--spotify-pill-space)
+  );
 }
 
 .exerciseRow {

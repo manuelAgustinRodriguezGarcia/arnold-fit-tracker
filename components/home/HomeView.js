@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Dumbbell, Plus, Settings } from "lucide-react";
 import { InstallPWA } from "@/components/install/InstallPWA";
 import { ActiveWorkoutCard } from "@/components/home/ActiveWorkoutCard";
 import { WeekActivityBars } from "@/components/progress/WeekActivityBars";
+import { WorkoutCompleteSheet } from "@/components/workout/WorkoutCompleteSheet";
 import { useArnold } from "@/hooks/useArnold";
 import { getPeriodRange } from "@/lib/dates";
-import { getActivityByDay, getPeriodSessions } from "@/lib/exerciseStats";
+import { getActivityByDay, getPeriodSessions, isLongestDurationSession } from "@/lib/exerciseStats";
 import styles from "./HomeView.module.css";
 
 export function HomeView({
@@ -60,13 +62,25 @@ function WeeklySummary({ sessions }) {
   const range = getPeriodRange("week", 0);
   const weekSessions = getPeriodSessions(sessions, "week", 0);
   const days = getActivityByDay(weekSessions, range);
+  const [replaySession, setReplaySession] = useState(null);
 
   return (
-    <WeekActivityBars
-      sessions={sessions}
-      days={days}
-      title="Esta semana"
-      ariaLabel="Actividad de esta semana"
-    />
+    <>
+      <WeekActivityBars
+        sessions={sessions}
+        days={days}
+        title="Esta semana"
+        ariaLabel="Actividad de esta semana"
+        onTodaySessionSelect={setReplaySession}
+      />
+      {replaySession ? (
+        <WorkoutCompleteSheet
+          session={replaySession}
+          isDurationRecord={isLongestDurationSession(replaySession, sessions)}
+          celebrate={false}
+          onClose={() => setReplaySession(null)}
+        />
+      ) : null}
+    </>
   );
 }

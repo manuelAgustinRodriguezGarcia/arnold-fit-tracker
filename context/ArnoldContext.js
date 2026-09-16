@@ -14,6 +14,7 @@ import { normalizeBottleCapacityMl } from "@/lib/hydration";
 import { playNotificationSound } from "@/lib/notificationSound";
 import {
   adjustRestTimer,
+  adjustTimedTimer,
   applyResizeSets,
   applySetFields,
   applySetToggle,
@@ -602,6 +603,22 @@ export function ArnoldProvider({ children }) {
     });
   }, []);
 
+  const adjustTimedSetTimer = useCallback((deltaSeconds) => {
+    updateArnoldStore((current) => {
+      if (!current.activeWorkout) {
+        return current;
+      }
+      return {
+        ...current,
+        activeWorkout: adjustTimedTimer(
+          current.activeWorkout,
+          deltaSeconds,
+          new Date(),
+        ),
+      };
+    });
+  }, []);
+
   const resumeTimedSetTimer = useCallback((workoutExerciseId, setId) => {
     updateArnoldStore((current) => {
       if (!current.activeWorkout) {
@@ -721,6 +738,7 @@ export function ArnoldProvider({ children }) {
       resetTimedSetTimer,
       stopTimedSetTimer,
       pauseTimedSetTimer,
+      adjustTimedSetTimer,
       resumeTimedSetTimer,
       swapWorkoutExercise,
       finishWorkout,
@@ -763,6 +781,7 @@ export function ArnoldProvider({ children }) {
       resetTimedSetTimer,
       stopTimedSetTimer,
       pauseTimedSetTimer,
+      adjustTimedSetTimer,
       resumeTimedSetTimer,
       swapWorkoutExercise,
       finishWorkout,

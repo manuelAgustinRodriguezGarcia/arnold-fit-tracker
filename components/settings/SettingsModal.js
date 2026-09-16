@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Moon, Sun } from "lucide-react";
+import { GlassWater, Moon, Palette, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useArnold } from "@/hooks/useArnold";
 import { useSpotify } from "@/context/SpotifyContext";
+import { SpotifyIcon } from "@/components/ui/SpotifyIcon";
 import { NUMBER_FIELD } from "@/lib/inputAttrs";
 import { normalizeBottleCapacityMl, parseWaterAmount } from "@/lib/hydration";
 import {
   APPEARANCE_DARK,
   APPEARANCE_LIGHT,
+  getThemeChrome,
   normalizeAppearance,
   normalizeThemePalette,
   paletteUsesAppearance,
@@ -56,44 +58,60 @@ export function SettingsModal({ open, onClose }) {
   }
 
   return (
-    <Modal open={open} title="Ajustes" onClose={onClose}>
+    <Modal
+      open={open}
+      title={
+        <span className={styles.modalTitle}>
+          <Settings size={26} strokeWidth={2.2} aria-hidden="true" />
+          Ajustes
+        </span>
+      }
+      onClose={onClose}
+    >
       <section className={styles.section}>
-        <h3>Paleta</h3>
-        <p>Paleta de color</p>
-        <div className={styles.list} role="radiogroup" aria-label="Paleta de color">
+        <h3 className={styles.sectionTitle}>
+          <Palette size={18} aria-hidden="true" />
+          Paleta y modo
+        </h3>
+        <p>Elegí la paleta y el modo Light o Dark (Classic y Stone).</p>
+        <div
+          className={styles.paletteGrid}
+          role="radiogroup"
+          aria-label="Paleta de color"
+        >
           {THEME_PALETTES.map((palette) => {
             const checked = selected === palette.id;
+            const chrome = getThemeChrome(palette.id, appearance);
+            const logoSrc =
+              (chrome.dark ? palette.logos.dark : palette.logos.light) ||
+              palette.logos.dark ||
+              palette.logos.light;
             return (
               <button
                 key={palette.id}
                 type="button"
-                className={styles.option}
+                className={styles.paletteCard}
                 role="radio"
                 aria-checked={checked}
                 onClick={() => updateSettings({ themePalette: palette.id })}
               >
-                <span className={styles.optionHead}>
-                  <strong>{palette.name}</strong>
-                  {checked ? <Check size={18} aria-hidden="true" /> : null}
+                <span
+                  className={styles.palettePreview}
+                  style={{ background: chrome.themeColor }}
+                  aria-hidden="true"
+                >
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    className={styles.paletteLogo}
+                    decoding="async"
+                  />
                 </span>
-                <span className={styles.swatches} aria-hidden="true">
-                  {palette.swatches.map((color) => (
-                    <span
-                      key={color}
-                      className={styles.swatch}
-                      style={{ background: color }}
-                    />
-                  ))}
-                </span>
+                <span className={styles.paletteName}>{palette.name}</span>
               </button>
             );
           })}
         </div>
-      </section>
-
-      <section className={styles.section}>
-        <h3>Apariencia</h3>
-        <p>Light o Dark para Classic y Stone.</p>
         <div
           className={styles.appearance}
           role="radiogroup"
@@ -129,7 +147,10 @@ export function SettingsModal({ open, onClose }) {
       </section>
 
       <section className={styles.section}>
-        <h3>Botella personal</h3>
+        <h3 className={styles.sectionTitle}>
+          <GlassWater size={18} aria-hidden="true" />
+          Botella personal
+        </h3>
         <p>Indicá la capacidad de tu botella personal</p>
         <div className={styles.bottleField}>
           <label className={styles.bottleAmount}>
@@ -153,7 +174,10 @@ export function SettingsModal({ open, onClose }) {
       </section>
 
       <section className={styles.section}>
-        <h3>Spotify</h3>
+        <h3 className={styles.sectionTitle}>
+          <SpotifyIcon size={18} />
+          Spotify
+        </h3>
         <p>Controlá tu música durante el entrenamiento.</p>
         {isConnected ? (
           <div className={styles.spotifyStatus}>

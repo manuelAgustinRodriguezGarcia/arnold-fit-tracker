@@ -1,26 +1,112 @@
 "use client";
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Pause, Play, SkipForward } from "lucide-react";
+import { Maximize2, Minimize2, Pause, Play, SkipForward } from "lucide-react";
 import { useArnold } from "@/hooks/useArnold";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatCountdown } from "@/lib/dates";
+import { getTimedPacePhase } from "@/lib/exercises";
 import styles from "./TimedSetOverlay.module.css";
+import restStyles from "./RestOverlay.module.css";
 
 const EXIT_MS = 320;
+const COLLAPSE_EXIT_MS = 240;
 const COUNTDOWN_SECONDS = 3;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function TimedSetOverlay({ session, onClose }) {
+function TimedControls({
+  expanded,
+  canSubtract,
+  canAdjust,
+  closing,
+  paused,
+  onMinimize,
+  onExpand,
+  onAdjust,
+  onTogglePause,
+  onSkip,
+}) {
+  return (
+    <div className={restStyles.actions}>
+      <button
+        type="button"
+        className={`${restStyles.square} ${restStyles.minimize}`}
+        onClick={expanded ? onMinimize : onExpand}
+        disabled={closing}
+        aria-label={expanded ? "Minimizar" : "Ampliar"}
+      >
+        {expanded ? (
+          <Minimize2 size={22} strokeWidth={2.4} />
+        ) : (
+          <Maximize2 size={22} strokeWidth={2.4} />
+        )}
+      </button>
+      <button
+        type="button"
+        className={`${styles.action} ${restStyles.square}`}
+        onClick={() => onAdjust(-15)}
+        disabled={!canAdjust || !canSubtract || closing}
+        aria-label="Restar 15 segundos"
+      >
+        <span className={restStyles.delta} aria-hidden="true">
+          −15
+        </span>
+      </button>
+      <button
+        type="button"
+        className={`${styles.action} ${restStyles.square}`}
+        onClick={() => onAdjust(15)}
+        disabled={!canAdjust || closing}
+        aria-label="Sumar 15 segundos"
+      >
+        <span className={restStyles.delta} aria-hidden="true">
+          +15
+        </span>
+      </button>
+      <button
+        type="button"
+        className={`${styles.action} ${restStyles.square}`}
+        onClick={onTogglePause}
+        disabled={!canAdjust || closing}
+        aria-label={paused ? "Reanudar" : "Pausar"}
+      >
+        {paused ? (
+          <Play size={24} strokeWidth={2.4} />
+        ) : (
+          <Pause size={24} strokeWidth={2.4} />
+        )}
+      </button>
+      <button
+        type="button"
+        className={`${styles.action} ${restStyles.square}`}
+        onClick={onSkip}
+        disabled={closing}
+        aria-label="Saltar"
+      >
+        <SkipForward size={24} strokeWidth={2.4} />
+      </button>
+    </div>
+  );
+}
+
+export function TimedSetOverlay({
+  session,
+  expanded = true,
+  onExpand,
+  onMinimize,
+  onClose,
+  onPacePhaseChange,
+}) {
   const {
     activeWorkout,
     beginTimedSet,
     finishTimedSet,
     pauseTimedSetTimer,
     resumeTimedSetTimer,
+    adjustTimedSetTimer,
   } = useArnold();
   const startPhase = session?.startPhase || "countdown";
   const [phase, setPhase] = useState(() =>
@@ -32,6 +118,9 @@ export function TimedSetOverlay({ session, onClose }) {
   const startedRef = useRef(false);
   const closingRef = useRef(false);
   const lastDisplayMsRef = useRef(0);
+  const expandedRef = useRef(expanded);
+
+  expandedRef.current = expanded;
 
   const timedTimer = activeWorkout?.timedTimer;
   const matchingTimer =
@@ -52,7 +141,12 @@ export function TimedSetOverlay({ session, onClose }) {
     }
     closingRef.current = true;
     setClosing(true);
-    const delay = prefersReducedMotion() ? 0 : EXIT_MS;
+    const reduced = prefersReducedMotion();
+    const delay = reduced
+      ? 0
+      : expandedRef.current
+        ? EXIT_MS
+        : COLLAPSE_EXIT_MS;
     window.setTimeout(() => {
       onClose?.();
     }, delay);
@@ -93,10 +187,16 @@ export function TimedSetOverlay({ session, onClose }) {
       : liveDisplayMs;
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setEntered(true);
+    let inner = 0;
+    const outer = window.requestAnimationFrame(() => {
+      inner = window.requestAnimationFrame(() => {
+        setEntered(true);
+      });
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(outer);
+      window.cancelAnimationFrame(inner);
+    };
   }, []);
 
   useEffect(() => {
@@ -133,11 +233,81 @@ export function TimedSetOverlay({ session, onClose }) {
     return () => window.clearInterval(tick);
   }, [session?.workoutExerciseId, session?.setId, startPhase]);
 
+  useEffect(() => {
+    if (!session || closingRef.current || !startedRef.current) {
+      return;
+    }
+    if (phase !== "running" && phase !== "paused") {
+      return;
+    }
+    if (matchingTimer) {
+      return;
+    }
+    if (
+      phase === "paused" &&
+      (Number(saved?.remainingMs) > 0 ||
+        activeWorkout?.pausedTimedSetId === session.setId)
+    ) {
+      return;
+    }
+    requestClose();
+  }, [
+    session,
+    phase,
+    matchingTimer,
+    saved?.remainingMs,
+    activeWorkout?.pausedTimedSetId,
+  ]);
+
+  const exercise = session
+    ? activeWorkout?.exercises?.find(
+        (item) => item.workoutExerciseId === session.workoutExerciseId,
+      )
+    : null;
+  const pacePhases = exercise?.pacePhases || null;
+  const durationMs = Math.max(
+    0,
+    Number(matchingTimer?.durationMs) || Number(saved?.durationMs) || 0,
+  );
+  const elapsedMs =
+    session &&
+    durationMs > 0 &&
+    (phase === "running" || phase === "paused")
+      ? Math.max(0, durationMs - displayMs)
+      : 0;
+  const pacePhase =
+    session && (phase === "running" || phase === "paused")
+      ? getTimedPacePhase(elapsedMs, durationMs, pacePhases)
+      : null;
+
+  useEffect(() => {
+    onPacePhaseChange?.(pacePhase);
+  }, [pacePhase, onPacePhaseChange]);
+
+  useEffect(() => {
+    return () => {
+      onPacePhaseChange?.(null);
+    };
+  }, [onPacePhaseChange]);
+
   if (!session) {
     return null;
   }
 
   const title = session.isStretch ? "Elongación" : session.name || "Serie";
+  const paused = phase === "paused";
+  const canAdjust = phase === "running" || phase === "paused";
+  const canSubtract = displayMs >= 15000;
+  const timeLabel =
+    phase === "countdown" ? String(countdown) : formatCountdown(displayMs);
+  const stageLabel =
+    phase === "countdown"
+      ? ""
+      : pacePhase === "start"
+        ? "Arranque"
+        : pacePhase === "mid"
+          ? "Descanso"
+          : title;
 
   function onPause() {
     if (phase !== "running" || !matchingTimer) {
@@ -165,67 +335,77 @@ export function TimedSetOverlay({ session, onClose }) {
     requestClose();
   }
 
+  const controls = (
+    <TimedControls
+      expanded={expanded}
+      canSubtract={canSubtract}
+      canAdjust={canAdjust}
+      closing={closing}
+      paused={paused}
+      onMinimize={onMinimize}
+      onExpand={onExpand}
+      onAdjust={adjustTimedSetTimer}
+      onTogglePause={paused ? onResume : onPause}
+      onSkip={onSkip}
+    />
+  );
+
+  const paceClass =
+    pacePhase === "start"
+      ? restStyles.paceStart
+      : pacePhase === "mid"
+        ? restStyles.paceMid
+        : "";
+
   return (
     <div
-      className={`${styles.overlay} ${entered ? styles.entered : ""} ${
-        closing ? styles.closing : ""
-      }`}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
+      className={`${restStyles.shell} ${entered ? restStyles.entered : ""} ${
+        expanded ? restStyles.shellExpanded : restStyles.shellCollapsed
+      } ${paceClass} ${closing ? restStyles.closing : ""}`}
+      role={expanded ? "dialog" : "region"}
+      aria-modal={expanded ? true : undefined}
+      aria-label={stageLabel || title}
     >
-      <div className={styles.stage}>
-        {phase === "countdown" ? (
-          <div className={styles.countdown} aria-live="assertive">
-            <p className={styles.countdownLabel}>Preparados</p>
-            <p className={styles.countdownNumber} key={countdown}>
-              {countdown}
-            </p>
-          </div>
-        ) : (
-          <div className={styles.run}>
-            <p className={styles.runLabel}>{title}</p>
-            <p className={styles.runTime} aria-live="polite">
-              {formatCountdown(displayMs)}
+      <div className={restStyles.panel}>
+        <div className={restStyles.stage}>
+          <button
+            type="button"
+            className={restStyles.timeHit}
+            onClick={() => {
+              if (!expanded) {
+                onExpand?.();
+              }
+            }}
+            tabIndex={expanded ? -1 : 0}
+            aria-label={
+              expanded
+                ? undefined
+                : `${stageLabel ? `${stageLabel} ` : ""}${timeLabel}. Ampliar`
+            }
+          >
+            {stageLabel ? (
+              <p className={restStyles.timeLabel}>{stageLabel}</p>
+            ) : null}
+            <p
+              className={`${restStyles.timeValue} ${
+                phase === "countdown" ? restStyles.timeValueCountdown : ""
+              }`}
+              aria-live={phase === "countdown" ? "assertive" : "polite"}
+            >
+              {timeLabel}
             </p>
             <p
-              className={`${styles.pausedHint} ${
-                phase === "paused" ? styles.pausedHintVisible : ""
+              className={`${restStyles.timeHint} ${
+                paused ? restStyles.timeHintVisible : ""
               }`}
-              aria-hidden={phase !== "paused"}
+              aria-hidden={!paused}
             >
               Pausado
             </p>
-          </div>
-        )}
-      </div>
-
-      <div className={styles.actions}>
-        {phase === "countdown" ? (
-          <button type="button" className={styles.action} onClick={onSkip}>
-            <SkipForward size={22} strokeWidth={2.4} />
-            Saltar
           </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              className={styles.action}
-              onClick={phase === "paused" ? onResume : onPause}
-            >
-              {phase === "paused" ? (
-                <Play size={22} strokeWidth={2.4} />
-              ) : (
-                <Pause size={22} strokeWidth={2.4} />
-              )}
-              {phase === "paused" ? "Reanudar" : "Pausa"}
-            </button>
-            <button type="button" className={styles.action} onClick={onSkip}>
-              <SkipForward size={22} strokeWidth={2.4} />
-              Saltar
-            </button>
-          </>
-        )}
+        </div>
+
+        <div className={restStyles.footer}>{controls}</div>
       </div>
     </div>
   );

@@ -1,10 +1,222 @@
+.shell {
+  --focus-dock-size: calc(
+    200px + env(safe-area-inset-bottom) + var(--spotify-pill-space)
+  );
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--on-accent);
+  transform: translateY(104%);
+  opacity: 0;
+  transition:
+    transform 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 480ms var(--ease-out);
+  will-change: transform, opacity;
+}
+
+.entered {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.shellExpanded {
+  pointer-events: auto;
+  background: var(--accent);
+}
+
+.shellCollapsed {
+  z-index: 30;
+  background: transparent;
+}
+
+.closing.shellExpanded {
+  transform: translateY(110%);
+  opacity: 0;
+  transition:
+    transform 320ms var(--ease-in),
+    opacity 280ms var(--ease-in);
+  pointer-events: none;
+}
+
+.closing.shellCollapsed {
+  transform: translateY(28px);
+  opacity: 0;
+  transition:
+    transform 240ms var(--ease-in),
+    opacity 200ms var(--ease-in);
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  pointer-events: auto;
+  background: var(--accent);
+  color: var(--on-accent);
+  transition:
+    top 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 480ms var(--ease-out);
+  will-change: top;
+}
+
+.paceStart.shellExpanded,
+.paceStart .panel {
+  background: color-mix(in srgb, var(--accent) 78%, white);
+}
+
+.paceMid.shellExpanded,
+.paceMid .panel {
+  background: color-mix(in srgb, var(--accent) 72%, black);
+}
+
+.paceStart .minimize {
+  color: color-mix(in srgb, var(--accent) 78%, white);
+}
+
+.paceMid .minimize {
+  color: color-mix(in srgb, var(--accent) 72%, black);
+}
+
+.shellExpanded .panel {
+  top: 0;
+}
+
+.shellCollapsed .panel {
+  top: calc(100% - var(--focus-dock-size));
+}
+
+.stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6) var(--space-4);
+  transition: padding 480ms var(--ease-out);
+}
+
+.shellCollapsed .stage {
+  padding: 4px var(--space-4) 0;
+}
+
+.entered .timeHit {
+  animation: focusRise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.timeHit {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+  transition: gap 480ms var(--ease-out);
+}
+
+.shellCollapsed .timeHit {
+  gap: 4px;
+  padding: 4px 0 2px;
+  cursor: pointer;
+}
+
+.shellCollapsed .timeHit:active {
+  transform: scale(0.98);
+}
+
+.timeLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
+  text-align: center;
+  transition: font-size 480ms var(--ease-out);
+}
+
+.shellCollapsed .timeLabel {
+  font-size: 0.75rem;
+}
+
+.timeValue {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(5.5rem, 26vw, 8.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  transition:
+    font-size 480ms var(--ease-out),
+    line-height 480ms var(--ease-out);
+}
+
+.shellCollapsed .timeValue {
+  font-size: clamp(2.4rem, 10vw, 3.2rem);
+  line-height: 0.95;
+}
+
+.timeValueCountdown {
+  font-size: clamp(6rem, 28vw, 9rem);
+  line-height: 0.9;
+}
+
+.shellCollapsed .timeValueCountdown {
+  font-size: clamp(2.4rem, 10vw, 3.2rem);
+  line-height: 0.95;
+}
+
+.timeHint {
+  margin: 0;
+  min-height: 1.25em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0;
+  text-align: center;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    font-size 480ms var(--ease-out);
+}
+
+.shellCollapsed .timeHint {
+  min-height: 1.1em;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.timeHintVisible {
+  opacity: 0.78;
+}
+
+.footer {
+  flex: 0 0 auto;
+  padding: var(--space-4);
+  padding-bottom: calc(
+    var(--space-4) + env(safe-area-inset-bottom) + var(--spotify-pill-space)
+  );
+}
+
 .actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
-  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
 
 .square {
@@ -17,6 +229,23 @@
   padding: 0;
   gap: 0;
   border-radius: 14px;
+}
+
+.minimize {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  background: var(--on-accent);
+  color: var(--accent);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.minimize:active:not(:disabled) {
+  background: color-mix(in srgb, var(--on-accent) 86%, var(--accent));
+  transform: scale(0.97);
 }
 
 .delta {
@@ -34,4 +263,92 @@
 
 .actions :global(button:disabled:active) {
   transform: none;
+}
+
+:global(html[data-theme="neon"]) .shellExpanded,
+:global(html[data-theme="neon"]) .panel {
+  background: var(--neon-background);
+  color: var(--neon-text-primary);
+}
+
+:global(html[data-theme="neon"]) .paceStart.shellExpanded,
+:global(html[data-theme="neon"]) .paceStart .panel {
+  background: color-mix(in srgb, var(--neon-background) 68%, white);
+}
+
+:global(html[data-theme="neon"]) .paceMid.shellExpanded,
+:global(html[data-theme="neon"]) .paceMid .panel {
+  background: color-mix(in srgb, var(--neon-background) 78%, black);
+}
+
+:global(html[data-theme="neon"]) .timeValue,
+:global(html[data-theme="neon"]) .timeValueCountdown {
+  color: var(--accent);
+}
+
+:global(html[data-theme="neon"]) .minimize {
+  background: var(--neon-text-primary);
+  color: var(--neon-background);
+}
+
+:global(html[data-theme="neon"]) .paceStart .minimize {
+  color: color-mix(in srgb, var(--neon-background) 68%, white);
+}
+
+:global(html[data-theme="neon"]) .paceMid .minimize {
+  color: color-mix(in srgb, var(--neon-background) 78%, black);
+}
+
+:global(html[data-theme="neon"]) .minimize:active:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--neon-text-primary) 86%,
+    var(--neon-background)
+  );
+}
+
+@keyframes focusRise {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .entered,
+  .closing.shellExpanded,
+  .closing.shellCollapsed,
+  .panel,
+  .stage,
+  .timeHit,
+  .timeLabel,
+  .timeValue,
+  .timeValueCountdown,
+  .timeHint {
+    transition: none;
+  }
+
+  .shell {
+    transform: none;
+    opacity: 1;
+  }
+
+  .closing.shellExpanded,
+  .closing.shellCollapsed {
+    opacity: 0;
+  }
+
+  .entered .timeHit {
+    animation: none;
+  }
+
+  .shellCollapsed .timeHit:active,
+  .minimize:active:not(:disabled) {
+    transform: none;
+  }
 }

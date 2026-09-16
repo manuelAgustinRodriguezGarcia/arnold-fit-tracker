@@ -6,6 +6,7 @@ import {
   formatDurationHuman,
   getWeekdayName,
   getWeekdayShortLabels,
+  localDateKey,
 } from "@/lib/dates";
 import styles from "./WeekActivityBars.module.css";
 
@@ -33,9 +34,11 @@ export function WeekActivityBars({
   days,
   title = "Actividad",
   ariaLabel = "Actividad de esta semana",
+  onTodaySessionSelect,
 }) {
   const [selectedKey, setSelectedKey] = useState(null);
   const latestOverall = getLatestSession(sessions);
+  const todayKey = localDateKey(new Date());
 
   function sessionsForDay(day) {
     const dayStart = day.date.getTime();
@@ -52,6 +55,16 @@ export function WeekActivityBars({
       setSelectedKey(null);
       return;
     }
+
+    const isToday = localDateKey(day.date) === todayKey;
+    if (isToday && onTodaySessionSelect) {
+      const latest = getLatestSession(sessionsForDay(day));
+      if (latest) {
+        onTodaySessionSelect(latest);
+        return;
+      }
+    }
+
     setSelectedKey((current) => (current === key ? null : key));
   }
 

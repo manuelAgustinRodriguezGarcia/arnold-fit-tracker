@@ -118,7 +118,12 @@ function getCompletedWeekdayTitle(session) {
   return `Entrenamiento del ${weekday} completado`;
 }
 
-export function WorkoutCompleteSheet({ session, isDurationRecord, onClose }) {
+export function WorkoutCompleteSheet({
+  session,
+  isDurationRecord,
+  celebrate = true,
+  onClose,
+}) {
   const [visible, setVisible] = useState(true);
   const [entered, setEntered] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -134,7 +139,7 @@ export function WorkoutCompleteSheet({ session, isDurationRecord, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!session || confettiFiredRef.current) {
+    if (!celebrate || !session || confettiFiredRef.current) {
       return undefined;
     }
     confettiFiredRef.current = true;
@@ -142,7 +147,7 @@ export function WorkoutCompleteSheet({ session, isDurationRecord, onClose }) {
       fireAccentConfetti();
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [session]);
+  }, [celebrate, session]);
 
   useEffect(() => {
     return () => {

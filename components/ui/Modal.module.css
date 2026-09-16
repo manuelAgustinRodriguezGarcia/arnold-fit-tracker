@@ -90,6 +90,9 @@
 }
 
 .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.15rem;
   font-weight: 700;
 }
