@@ -136,6 +136,9 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     () => !(activeWorkout?.restTimer || activeWorkout?.timedTimer),
   );
   const [timedPacePhase, setTimedPacePhase] = useState(null);
+  const [dockInset, setDockInset] = useState(() =>
+    Boolean(activeWorkout?.restTimer || activeWorkout?.timedTimer),
+  );
   const [completeSession, setCompleteSession] = useState(null);
   const [isDurationRecord, setIsDurationRecord] = useState(false);
   const focusTimerKeyRef = useRef(undefined);
@@ -170,6 +173,21 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
       root.removeAttribute("data-workout-focus-timer");
     };
   }, [hasFocusTimer]);
+
+  useEffect(() => {
+    if (hasFocusTimer && !timerExpanded) {
+      setDockInset(true);
+      return undefined;
+    }
+    if (timerExpanded) {
+      setDockInset(false);
+      return undefined;
+    }
+    const release = window.setTimeout(() => {
+      setDockInset(false);
+    }, 260);
+    return () => window.clearTimeout(release);
+  }, [hasFocusTimer, timerExpanded]);
 
   const stretchItems = useMemo(() => {
     const presetIds = STRETCH_PRESETS.map((preset) => preset.id);
@@ -441,7 +459,7 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
           <ul
             ref={listRef}
             className={`${styles.exercises} ${isDragging ? styles.exercisesDragging : ""} ${
-              hasFocusTimer && !timerExpanded ? styles.exercisesWithDock : ""
+              dockInset ? styles.exercisesWithDock : ""
             }`}
           >
           {visibleExercises.map((exercise) => (

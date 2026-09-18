@@ -1,6 +1,6 @@
 .shell {
   --focus-dock-size: calc(
-    200px + env(safe-area-inset-bottom) + var(--spotify-pill-space)
+    220px + env(safe-area-inset-bottom) + var(--spotify-pill-space)
   );
   position: absolute;
   inset: 0;
