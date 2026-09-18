@@ -691,12 +691,11 @@ export function ArnoldProvider({ children }) {
 
       if (savedSession) {
         playNotificationSound();
-        showNotice("Entrenamiento guardado");
       }
 
       return savedSession;
     },
-    [showNotice],
+    [],
   );
 
   const value = useMemo(

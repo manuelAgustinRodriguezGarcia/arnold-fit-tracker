@@ -22,6 +22,7 @@ export function Modal({
   onClose,
   children,
   footer,
+  showClose = true,
 }) {
   const [visible, setVisible] = useState(open);
   const [closing, setClosing] = useState(false);
@@ -167,9 +168,11 @@ export function Modal({
           ) : (
             <span />
           )}
-          <IconButton label="Cerrar" onClick={requestClose}>
-            <X size={20} />
-          </IconButton>
+          {showClose ? (
+            <IconButton label="Cerrar" onClick={requestClose}>
+              <X size={20} />
+            </IconButton>
+          ) : null}
         </div>
         <div className={styles.body}>{children}</div>
         {footer ? <div className={styles.footer}>{footer}</div> : null}

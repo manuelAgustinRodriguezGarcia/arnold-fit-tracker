@@ -593,13 +593,14 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
         open={hydrationOpen}
         title="Cantidad de agua tomada"
         onClose={() => completeFinish(null)}
+        showClose={false}
         footer={
           <div className={styles.stretchFooter}>
-            <Button size="lg" onClick={() => completeFinish(waterMl)}>
-              Continuar
-            </Button>
             <Button variant="secondary" size="lg" onClick={() => completeFinish(null)}>
               Omitir
+            </Button>
+            <Button size="lg" onClick={() => completeFinish(waterMl)}>
+              Continuar
             </Button>
           </div>
         }
