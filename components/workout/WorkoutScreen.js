@@ -243,7 +243,9 @@ export function WorkoutScreen({ onMinimize, onFinished }) {
     listRef,
     orderedIds: visibleOrderedIds,
     onReorder: reorderActiveWorkoutExercises,
-    enabled: !timedSession && !activeWorkout?.restTimer && visibleExercises.length > 1,
+    enabled:
+      visibleExercises.length > 1 &&
+      (!(timedSession || activeWorkout?.restTimer) || !timerExpanded),
   });
 
   function onToggleSet(exercise, set) {

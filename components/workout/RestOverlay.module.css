@@ -30,6 +30,12 @@
 .shellCollapsed {
   z-index: 30;
   background: transparent;
+  pointer-events: none;
+}
+
+.shellCollapsed .panel {
+  top: calc(100% - var(--focus-dock-size));
+  pointer-events: auto;
 }
 
 .closing.shellExpanded {
@@ -89,10 +95,6 @@
 
 .shellExpanded .panel {
   top: 0;
-}
-
-.shellCollapsed .panel {
-  top: calc(100% - var(--focus-dock-size));
 }
 
 .stage {

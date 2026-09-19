@@ -133,6 +133,7 @@
   touch-action: none;
   overflow: hidden;
   isolation: isolate;
+  transition: none;
 }
 
 .exercisesWithDock {
